@@ -120,11 +120,11 @@ const Index = () => {
       showError(`Failed to process text: ${error.message || "Unknown error"} 💔`);
     } finally {
       setIsLoading(false);
-      dismissToast(loadingToastId);
+      dismissToast(String(loadingToastId));
     }
   }, [inputText, moduleName]); // Add moduleName to dependencies
 
-  const addToCalendar = useCallback(() => {
+  const addToCalendar = useCallback(async () => {
     if (!eventDetails || !eventDetails.date_start) {
       showError("No valid event details to add to calendar. 🗓️");
       return;
@@ -133,19 +133,55 @@ const Index = () => {
     try {
       const icsContent = generateIcs(eventDetails);
       const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
+      const sanitizedTitle = (eventDetails.title || "event").replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
+      const fileName = `${sanitizedTitle}.ics`;
 
+      const isIOSDevice = () =>
+        typeof window !== "undefined" && /iP(hone|ad|od)/i.test(window.navigator.userAgent);
+
+      // Use the native share sheet when possible (iOS 13+ supports ICS via Share API)
+      const canUseShareApi =
+        typeof navigator !== "undefined" &&
+        typeof File !== "undefined" &&
+        typeof navigator.share === "function" &&
+        typeof navigator.canShare === "function";
+
+      if (canUseShareApi) {
+        try {
+          const file = new File([blob], fileName, { type: "text/calendar" });
+          const shareData = {
+            files: [file],
+            title: eventDetails.title || "Calendar event",
+            text: eventDetails.description || undefined,
+          };
+
+          if (navigator.canShare(shareData)) {
+            await navigator.share(shareData);
+            showSuccess("Event sent to your calendar apps! 🎉");
+            return;
+          }
+        } catch (shareError) {
+          console.warn("Native share failed, falling back to download", shareError);
+        }
+      }
+
+      if (isIOSDevice()) {
+        const dataUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
+        window.location.href = dataUrl;
+        showSuccess("Event opened in your calendar app! 🎉");
+        return;
+      }
+
+      const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      // Sanitize the title for the filename to avoid issues with special characters in Safari
-      const sanitizedTitle = (eventDetails.title || "event").replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
-      a.download = `${sanitizedTitle}.ics`;
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      showSuccess("Event added to your calendar! 🎉");
+      showSuccess("Event downloaded to your calendar! 🎉");
     } catch (error: any) {
       console.error("Error generating ICS:", error);
       showError(`Failed to add event to calendar: ${error.message || "Unknown error"} 😭`);
