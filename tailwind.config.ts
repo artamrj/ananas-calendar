@@ -92,5 +92,11 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    function ({ addVariant }) {
+      addVariant("platform-web", ".platform-web &");
+      addVariant("platform-mobile", ".platform-mobile &");
+    },
+  ],
 } satisfies Config;
