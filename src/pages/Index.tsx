@@ -127,9 +127,12 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 to-yellow-100 p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-3xl space-y-6">
-        <h1 className="text-5xl font-extrabold text-center text-orange-600 drop-shadow-lg mb-8">
+        <h1 className="text-5xl font-extrabold text-center text-orange-600 drop-shadow-lg">
           Ananas 🍍✨
         </h1>
+        <p className="text-xl text-center text-gray-700 mb-8">
+          Peel, paste, plan—Ananas style!
+        </p>
 
         <Card className="bg-white shadow-xl border-none rounded-xl p-6">
           <CardHeader className="p-0 mb-4">
