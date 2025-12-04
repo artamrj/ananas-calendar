@@ -124,6 +124,7 @@ const Index = () => {
     }
   }, [inputText, moduleName]); // Add moduleName to dependencies
 
+  
   const addToCalendar = useCallback(async () => {
     if (!eventDetails || !eventDetails.date_start) {
       showError("No valid event details to add to calendar. 🗓️");
