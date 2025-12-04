@@ -35,7 +35,15 @@ const Index = () => {
     const loadingToastId = showLoading("Ananas is thinking... 🍍✨");
 
     try {
+      const now = new Date();
+      const todayDate = now.toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }); // YYYY-MM-DD
+      const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' });
+      const currentTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }); // HH:MM
+
+      const contextString = `Current Date: ${todayDate}, Day of Week: ${dayOfWeek}, Current Time: ${currentTime}.`;
+
       const prompt = `You are an AI assistant specialized in extracting event details from unstructured text.
+      ${contextString}
       Detect the language of the input text.
       Extract the following event details into a JSON object. If a field is missing, leave its value as an empty string.
       Dates should be in YYYY-MM-DD format. Times should be in HH:MM (24-hour) format.
