@@ -9,6 +9,7 @@ import { showSuccess, showError, showLoading, dismissToast } from "@/utils/toast
 import { generateIcs, EventDetails } from "@/lib/ics-generator";
 import { Loader2, CalendarPlus, Settings } from "lucide-react";
 import ModuleNameDialog from "@/components/ModuleNameDialog";
+import { useIsMobile } from "@/hooks/use-mobile"; // Import the hook
 
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 const DEFAULT_MODULE_NAME = "openai/gpt-oss-safeguard-20b";
@@ -25,6 +26,8 @@ const Index = () => {
     }
     return DEFAULT_MODULE_NAME;
   });
+
+  const isMobile = useIsMobile(); // Use the hook to detect mobile
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -226,21 +229,25 @@ const Index = () => {
         )}
       </div>
 
-      <Button
-        variant="outline"
-        size="icon"
-        className="fixed bottom-4 left-4 rounded-full shadow-lg bg-white hover:bg-gray-100"
-        onClick={() => setIsModuleNameDialogOpen(true)}
-      >
-        <Settings className="h-5 w-5" />
-      </Button>
+      {!isMobile && ( // Conditionally render the button
+        <Button
+          variant="outline"
+          size="icon"
+          className="fixed bottom-4 left-4 rounded-full shadow-lg bg-white hover:bg-gray-100"
+          onClick={() => setIsModuleNameDialogOpen(true)}
+        >
+          <Settings className="h-5 w-5" />
+        </Button>
+      )}
 
-      <ModuleNameDialog
-        isOpen={isModuleNameDialogOpen}
-        onClose={() => setIsModuleNameDialogOpen(false)}
-        currentModuleName={moduleName}
-        onSave={handleSaveModuleName}
-      />
+      {!isMobile && ( // Conditionally render the dialog
+        <ModuleNameDialog
+          isOpen={isModuleNameDialogOpen}
+          onClose={() => setIsModuleNameDialogOpen(false)}
+          currentModuleName={moduleName}
+          onSave={handleSaveModuleName}
+        />
+      )}
     </div>
   );
 };
