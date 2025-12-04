@@ -9,9 +9,9 @@ import { showSuccess, showError, showLoading, dismissToast } from "@/utils/toast
 import { generateIcs, EventDetails } from "@/lib/ics-generator";
 import { Loader2, CalendarPlus } from "lucide-react";
 
-// IMPORTANT: Replace with your actual OpenRouter API Key
-// This key will be exposed on the client-side. For production, consider a server-side proxy.
-const OPENROUTER_API_KEY = "YOUR_OPENROUTER_API_KEY"; 
+// IMPORTANT: The OpenRouter API Key is now loaded from environment variables.
+// Ensure you have VITE_OPENROUTER_API_KEY set in your .env.local file.
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY; 
 
 const Index = () => {
   const [inputText, setInputText] = useState("");
@@ -24,8 +24,8 @@ const Index = () => {
       showError("Please enter some text to process. 📝");
       return;
     }
-    if (OPENROUTER_API_KEY === "YOUR_OPENROUTER_API_KEY") {
-      showError("Please replace 'YOUR_OPENROUTER_API_KEY' with your actual OpenRouter API key in src/pages/Index.tsx. 🔑");
+    if (!OPENROUTER_API_KEY) {
+      showError("OpenRouter API Key is not configured. Please set VITE_OPENROUTER_API_KEY in your environment variables. 🔑");
       return;
     }
 
