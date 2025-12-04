@@ -1,0 +1,10 @@
+{
+  "name": "ananas-calendar",
+  "compatibility_date": "2025-12-04",
+  "assets": {
+    "directory": "./dist"
+  },
+  "build": {
+    "command": "pnpm run build"
+  }
+}
