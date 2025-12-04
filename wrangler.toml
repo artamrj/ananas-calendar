@@ -1,6 +1,0 @@
-name = "ananas-app" # You can change this to a unique name for your application
-main = "_worker.js" # This points to the new Worker script we just created
-compatibility_date = "2024-07-29" # Using a recent compatibility date
-
-[site]
-bucket = "./dist" # This tells Wrangler to deploy the contents of your 'dist' folder as static assets

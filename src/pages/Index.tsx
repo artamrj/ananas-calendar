@@ -35,16 +35,9 @@ const Index = () => {
     const loadingToastId = showLoading("Ananas is thinking... 🍍✨");
 
     try {
-      // Get current date, day of week, and time
-      const now = new Date();
-      const currentDate = now.toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }); // YYYY-MM-DD
-      const currentDayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' });
-      const currentTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }); // HH:MM
-
       const prompt = `You are an AI assistant specialized in extracting event details from unstructured text.
       Detect the language of the input text.
-      The current date is ${currentDate}, the day of the week is ${currentDayOfWeek}, and the current time is ${currentTime}.
-      Based on this context, extract the following event details into a JSON object. If a field is missing, leave its value as an empty string.
+      Extract the following event details into a JSON object. If a field is missing, leave its value as an empty string.
       Dates should be in YYYY-MM-DD format. Times should be in HH:MM (24-hour) format.
       Recurrence rule should be a valid iCalendar RRULE string (e.g., "FREQ=DAILY;COUNT=10", "FREQ=WEEKLY;BYDAY=MO,WE", "FREQ=MONTHLY;BYMONTHDAY=15").
 
