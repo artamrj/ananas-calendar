@@ -9,9 +9,12 @@ import { showSuccess, showError, showLoading, dismissToast } from "@/utils/toast
 import { generateIcs, EventDetails } from "@/lib/ics-generator";
 import { Loader2, CalendarPlus } from "lucide-react";
 
-// IMPORTANT: Replace with your actual OpenRouter API Key
-// This key will be exposed on the client-side. For production, consider a server-side proxy.
-const OPENROUTER_API_KEY = "YOUR_OPENROUTER_API_KEY"; 
+// IMPORTANT: The OpenRouter API Key is now read from an environment variable.
+// Create a .env.local file in the root of your project and add:
+// NEXT_PUBLIC_OPENROUTER_API_KEY="YOUR_OPENROUTER_API_KEY"
+// Replace "YOUR_OPENROUTER_API_KEY" with your actual key.
+// For production, consider a server-side proxy to protect your API keys.
+const OPENROUTER_API_KEY = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY; 
 
 const Index = () => {
   const [inputText, setInputText] = useState("");
@@ -24,8 +27,8 @@ const Index = () => {
       showError("Please enter some text to process. 📝");
       return;
     }
-    if (OPENROUTER_API_KEY === "YOUR_OPENROUTER_API_KEY") {
-      showError("Please replace 'YOUR_OPENROUTER_API_KEY' with your actual OpenRouter API key in src/pages/Index.tsx. 🔑");
+    if (!OPENROUTER_API_KEY) {
+      showError("OpenRouter API Key is not set. Please add NEXT_PUBLIC_OPENROUTER_API_KEY to your .env.local file. 🔑");
       return;
     }
 
