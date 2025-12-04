@@ -8,16 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { showSuccess, showError, showLoading, dismissToast } from "@/utils/toast";
 import { generateIcs, EventDetails } from "@/lib/ics-generator";
 import { Loader2, CalendarPlus, Settings } from "lucide-react";
-import ModuleNameDialog from "@/components/ModuleNameDialog"; // Import the new component
+import ModuleNameDialog from "@/components/ModuleNameDialog";
 
-// IMPORTANT: The OpenRouter API Key is now loaded from environment variables.
-// Ensure you have VITE_OPENROUTER_API_KEY set in your .env.local file.
-const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+const OPENROUTER_API_KEY = import.meta.env.OPENROUTER_API_KEY;
 const DEFAULT_MODULE_NAME = "openai/gpt-oss-safeguard-20b";
-
-// Helper function for device detection
-const isIOSDevice = () =>
-  typeof window !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
 
 const Index = () => {
   const [inputText, setInputText] = useState("");
@@ -26,7 +20,6 @@ const Index = () => {
   const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
   const [isModuleNameDialogOpen, setIsModuleNameDialogOpen] = useState(false);
   const [moduleName, setModuleName] = useState<string>(() => {
-    // Initialize module name from localStorage or use default
     if (typeof window !== "undefined") {
       return localStorage.getItem("aiModuleName") || DEFAULT_MODULE_NAME;
     }
@@ -34,7 +27,6 @@ const Index = () => {
   });
 
   useEffect(() => {
-    // Update localStorage whenever moduleName changes
     if (typeof window !== "undefined") {
       localStorage.setItem("aiModuleName", moduleName);
     }
@@ -46,7 +38,7 @@ const Index = () => {
       return;
     }
     if (!OPENROUTER_API_KEY) {
-      showError("OpenRouter API Key is not configured. Please set VITE_OPENROUTER_API_KEY in your environment variables. 🔑");
+      showError("OpenRouter API Key is not configured. 🔑");
       return;
     }
 
@@ -57,9 +49,9 @@ const Index = () => {
 
     try {
       const now = new Date();
-      const todayDate = now.toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }); // YYYY-MM-DD
+      const todayDate = now.toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' });
       const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' });
-      const currentTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }); // HH:MM
+      const currentTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
 
       const contextString = `Current Date: ${todayDate}, Day of Week: ${dayOfWeek}, Current Time: ${currentTime}.`;
 
@@ -69,7 +61,7 @@ const Index = () => {
       Extract the following event details into a JSON object. If a field is missing, leave its value as an empty string.
       The 'title' field should be a concise and specific summary of the event.
       Dates should be in YYYY-MM-DD format. Times should be in HH:MM (24-hour) format.
-      Recurrence rule should be a valid iCalendar RRULE string (e.g., "FREQ=DAILY;COUNT=10", "FREQ=WEEKLY;BYDAY=MO,WE", "FREQ=MONTHLY;BYMONTHDAY=15").
+      Recurrence rule should be a valid iCalendar RRULE string.
 
       JSON Structure:
       {
@@ -84,7 +76,7 @@ const Index = () => {
         "recurrence_rule": "string"
       }
 
-      Return ONLY the JSON object, with no additional text or formatting.
+      Return ONLY the JSON object.
 
       Input Text:
       "${inputText}"`;
@@ -96,7 +88,7 @@ const Index = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: moduleName, // Use the dynamic moduleName
+          model: moduleName,
           messages: [{ role: "user", content: prompt }],
           temperature: 0.2,
           response_format: { type: "json_object" },
@@ -117,7 +109,7 @@ const Index = () => {
         setEventDetails(parsedJson);
         showSuccess("Event details extracted! ✨");
       } else {
-        showError("Could not extract event details. Please try again. 🧐");
+        showError("Could not extract event details. 🧐");
       }
     } catch (error: any) {
       console.error("Error processing text:", error);
@@ -126,10 +118,9 @@ const Index = () => {
       setIsLoading(false);
       dismissToast(String(loadingToastId));
     }
-  }, [inputText, moduleName]); // Add moduleName to dependencies
+  }, [inputText, moduleName]);
 
-  
-  const addToCalendar = useCallback(async () => {
+  const addToCalendar = useCallback(() => {
     if (!eventDetails || !eventDetails.date_start) {
       showError("No valid event details to add to calendar. 🗓️");
       return;
@@ -137,57 +128,32 @@ const Index = () => {
 
     try {
       const icsContent = generateIcs(eventDetails);
-      const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
       const sanitizedTitle = (eventDetails.title || "event").replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
-      const fileName = `${sanitizedTitle}.ics`;
 
-      // Use the native share sheet when possible (iOS 13+ supports ICS via Share API)
-      const canUseShareApi =
-        typeof navigator !== "undefined" &&
-        typeof File !== "undefined" &&
-        typeof navigator.share === "function" &&
-        typeof navigator.canShare === "function";
+      // Detect Apple devices (iPhone/iPad/Mac)
+      const isAppleDevice = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && !window.MSStream;
 
-      if (canUseShareApi) {
-        try {
-          const file = new File([blob], fileName, { type: "text/calendar" });
-          const shareData = {
-            files: [file],
-            title: eventDetails.title || "Calendar event",
-            text: eventDetails.description || undefined,
-          };
-
-          if (navigator.canShare(shareData)) {
-            await navigator.share(shareData);
-            showSuccess("Event sent to your calendar apps! 🎉");
-            return;
-          }
-        } catch (shareError) {
-          console.warn("Native share failed, falling back to other methods", shareError);
-        }
-      }
-
-      if (isIOSDevice()) {
+      if (isAppleDevice) {
         const dataUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
         window.location.href = dataUrl;
-        showSuccess("Event opened in your calendar app! 🎉");
+        showSuccess("Event opened in your Calendar app! 🎉");
         return;
       }
 
-      // For macOS and other desktop browsers, the file must be downloaded.
-      // The OS typically opens .ics files with the default calendar application.
+      // Fallback: download .ics
+      const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = fileName;
+      a.download = `${sanitizedTitle}.ics`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      showSuccess("Event downloaded and ready to be added to your calendar! 🎉");
+      showSuccess("Event downloaded and ready to add to your calendar! 🎉");
     } catch (error: any) {
-      console.error("Error generating ICS:", error);
+      console.error(error);
       showError(`Failed to add event to calendar: ${error.message || "Unknown error"} 😭`);
     }
   }, [eventDetails]);
@@ -260,7 +226,6 @@ const Index = () => {
         )}
       </div>
 
-      {/* Button to open module name settings */}
       <Button
         variant="outline"
         size="icon"
