@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { showSuccess, showError } from "@/utils/toast"; // Removed showLoading, dismissToast
+import { showError } from "@/utils/toast";
 import { generateIcs, EventDetails } from "@/lib/ics-generator";
 import { Loader2, CalendarPlus, Settings } from "lucide-react";
 import ModuleNameDialog from "@/components/ModuleNameDialog";
-import { useIsMobile } from "@/hooks/use-mobile"; // Import the hook
-import { toast } from "sonner"; // Import toast directly for promise
+import { useIsMobile } from "@/hooks/use-mobile";
+import { toast } from "sonner";
+import { processTextWithAI } from "@/services/aiService"; // Import the new service
 
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 const DEFAULT_MODULE_NAME = "openai/gpt-oss-safeguard-20b";
@@ -28,7 +29,7 @@ const Index = () => {
     return DEFAULT_MODULE_NAME;
   });
 
-  const isMobile = useIsMobile(); // Use the hook to detect mobile
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -36,97 +37,31 @@ const Index = () => {
     }
   }, [moduleName]);
 
-  const processText = useCallback(async () => {
-    if (!inputText.trim()) {
-      showError("Please enter some text to process. 📝");
-      return;
-    }
-    if (!OPENROUTER_API_KEY) {
-      showError("OpenRouter API Key is not configured. 🔑");
-      return;
-    }
-
+  const handleProcessText = useCallback(async () => {
     setIsLoading(true);
     setExtractedJson(null);
     setEventDetails(null);
 
-    const apiCallPromise = (async () => {
-      try {
-        const now = new Date();
-        const todayDate = now.toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' });
-        const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' });
-        const currentTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-        const contextString = `Current Date: ${todayDate}, Day of Week: ${dayOfWeek}, Current Time: ${currentTime}.`;
-
-        const prompt = `You are an AI assistant specialized in extracting event details from unstructured text.
-        ${contextString}
-        Detect the language of the input text and return the JSON output in the same language.
-        Extract the following event details into a JSON object. If a field is missing, leave its value as an empty string.
-        The 'title' field should be a concise and specific summary of the event.
-        Dates should be in YYYY-MM-DD format. Times should be in HH:MM (24-hour) format.
-        Recurrence rule should be a valid iCalendar RRULE string.
-
-        JSON Structure:
-        {
-          "title": "string",
-          "description": "string",
-          "link": "string",
-          "location": "string",
-          "date_start": "YYYY-MM-DD",
-          "date_end": "YYYY-MM-DD",
-          "time_start": "HH:MM",
-          "time_end": "HH:MM",
-          "recurrence_rule": "string"
-        }
-
-        Return ONLY the JSON object.
-
-        Input Text:
-        "${inputText}"`;
-
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: moduleName,
-            messages: [{ role: "user", content: prompt }],
-            temperature: 0.2,
-            response_format: { type: "json_object" },
-          }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || `API error: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        const content = data.choices[0]?.message?.content;
-
-        if (content) {
-          const parsedJson: EventDetails = JSON.parse(content);
-          setExtractedJson(JSON.stringify(parsedJson, null, 2));
-          setEventDetails(parsedJson);
-          return "Event details extracted! ✨"; // Success message for the toast
-        } else {
-          throw new Error("Could not extract event details. 🧐");
-        }
-      } finally {
-        setIsLoading(false); // Ensure loading state is reset regardless of success/failure
-      }
-    })(); // Immediately invoke the async function to get the promise
+    const apiCallPromise = processTextWithAI(
+      inputText,
+      moduleName,
+      OPENROUTER_API_KEY || "" // Pass the API key
+    );
 
     toast.promise(apiCallPromise, {
       loading: "Ananas is thinking... 🍍✨",
-      success: (message) => message, // Use the message returned by the promise
+      success: (result) => {
+        setExtractedJson(result.extractedJson);
+        setEventDetails(result.eventDetails);
+        return "Event details extracted! ✨";
+      },
       error: (err: any) => {
         console.error("Error processing text:", err);
         return `Failed to process text: ${err.message || "Unknown error"} 💔`;
       },
+      finally: () => {
+        setIsLoading(false);
+      }
     });
   }, [inputText, moduleName]);
 
@@ -140,17 +75,15 @@ const Index = () => {
       const icsContent = generateIcs(eventDetails);
       const sanitizedTitle = (eventDetails.title || "event").replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
 
-      // Detect Apple devices (iPhone/iPad/Mac)
       const isAppleDevice = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && !window.MSStream;
 
       if (isAppleDevice) {
         const dataUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
         window.location.href = dataUrl;
-        showSuccess("Event opened in your Calendar app! 🎉");
+        toast.success("Event opened in your Calendar app! 🎉");
         return;
       }
 
-      // Fallback: download .ics
       const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -161,7 +94,7 @@ const Index = () => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      showSuccess("Event downloaded and ready to add to your calendar! 🎉");
+      toast.success("Event downloaded and ready to add to your calendar! 🎉");
     } catch (error: any) {
       console.error(error);
       showError(`Failed to add event to calendar: ${error.message || "Unknown error"} 😭`);
@@ -197,7 +130,7 @@ const Index = () => {
               className="w-full resize-y border-2 border-orange-200 focus:border-orange-400 rounded-lg p-3 text-lg transition-all duration-200"
             />
             <Button
-              onClick={processText}
+              onClick={handleProcessText}
               disabled={isLoading}
               className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg text-lg transition-all duration-200 flex items-center justify-center space-x-2"
             >
@@ -236,7 +169,7 @@ const Index = () => {
         )}
       </div>
 
-      {!isMobile && ( // Conditionally render the button
+      {!isMobile && (
         <Button
           variant="outline"
           size="icon"
@@ -247,7 +180,7 @@ const Index = () => {
         </Button>
       )}
 
-      {!isMobile && ( // Conditionally render the dialog
+      {!isMobile && (
         <ModuleNameDialog
           isOpen={isModuleNameDialogOpen}
           onClose={() => setIsModuleNameDialogOpen(false)}
