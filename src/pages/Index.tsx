@@ -42,54 +42,33 @@ const Index = () => {
     setExtractedJson(null);
     setEventDetails(null);
 
-    try {
-      // Get user location
-      const getUserLocation = (): Promise<string> =>
-        new Promise((resolve) => {
-          if (!navigator.geolocation) {
-            resolve("");
-          } else {
-            navigator.geolocation.getCurrentPosition(
-              (position) => {
-                const { latitude, longitude } = position.coords;
-                resolve(`${latitude},${longitude}`);
-              },
-              () => resolve("")
-            );
-          }
-        });
+    const apiCallPromise = processTextWithAI(
+      inputText,
+      "", 
+      moduleName,
+      OPENROUTER_API_KEY || ""
+    );
 
-      const userLocation = await getUserLocation();
-
-      const apiCallPromise = processTextWithAI(
-        inputText,
-        userLocation,
-        moduleName,
-        OPENROUTER_API_KEY || ""
-      );
-
-      toast.promise(apiCallPromise, {
-        loading: "Ananas is thinking... 🍍✨",
-        success: (result) => {
-          setExtractedJson(result.extractedJson);
-          setEventDetails(result.eventDetails);
-          return "Event details extracted! ✨";
-        },
-        error: (err: any) => {
-          console.error("Error processing text:", err);
-          return `Failed to process text: ${err.message || "Unknown error"} 💔`;
-        },
-        finally: () => {
-          setIsLoading(false);
-        }
-      });
-    } catch (err) {
-      console.error(err);
-      showError("Failed to get user location. 🌍");
-      setIsLoading(false);
-    }
+    toast.promise(apiCallPromise, {
+      loading: "Ananas is thinking... 🍍✨",
+      success: (result) => {
+        setExtractedJson(result.extractedJson);
+        setEventDetails(result.eventDetails);
+        return "Event details extracted! ✨";
+      },
+      error: (err: any) => {
+        console.error("Error processing text:", err);
+        return `Failed to process text: ${err.message || "Unknown error"} 💔`;
+      },
+      finally: () => {
+        setIsLoading(false);
+      }
+    });
   }, [inputText, moduleName]);
 
+  // ---------------------------------------------------------------------------
+  // UPDATED ADD TO CALENDAR LOGIC
+  // ---------------------------------------------------------------------------
   const addToCalendar = useCallback(() => {
     if (!eventDetails || !eventDetails.date_start) {
       showError("No valid event details to add to calendar. 🗓️");
@@ -100,36 +79,40 @@ const Index = () => {
       const icsContent = generateIcs(eventDetails);
       const sanitizedTitle = (eventDetails.title || "event").replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
 
-      const isAppleDevice = /Macintosh|iPhone|iPad/.test(navigator.userAgent);
+      // 1. Detect OS
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      const isMac = userAgent.includes("macintosh");
+      const isIOS = /ipad|iphone|ipod/.test(userAgent) && !((window as any).MSStream);
+      
+      const isAppleDevice = isMac || isIOS;
 
+      // 2. Logic for Mac and iPhone (Direct Open / Import)
       if (isAppleDevice) {
-        const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        toast.success("Event opened in your Calendar app! 🎉");
+        // We use a Data URI. 
+        // iOS and macOS usually recognize 'text/calendar' in the address bar 
+        // and trigger the Calendar app directly without saving a file to 'Downloads'.
+        const dataUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
+        
+        // 'window.location.assign' is robust for triggering protocol handlers
+        window.location.assign(dataUrl);
+        
+        toast.success("Opening in Calendar... 🍎");
         return;
       }
 
+      // 3. Logic for Windows, Android, Linux (Force Download)
+      // Create a Blob and force the browser to save the file
       const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${sanitizedTitle}.ics`;
+      a.setAttribute("download", `${sanitizedTitle}.ics`);
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      toast.success("Event downloaded and ready to add to your calendar! 🎉");
+      toast.success("Event file downloaded! 📥");
     } catch (error: any) {
       console.error(error);
       showError(`Failed to add event to calendar: ${error.message || "Unknown error"} 😭`);
