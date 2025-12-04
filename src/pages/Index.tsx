@@ -1,23 +1,40 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { showSuccess, showError, showLoading, dismissToast } from "@/utils/toast";
 import { generateIcs, EventDetails } from "@/lib/ics-generator";
-import { Loader2, CalendarPlus } from "lucide-react";
+import { Loader2, CalendarPlus, Settings } from "lucide-react";
+import ModuleNameDialog from "@/components/ModuleNameDialog"; // Import the new component
 
 // IMPORTANT: The OpenRouter API Key is now loaded from environment variables.
 // Ensure you have VITE_OPENROUTER_API_KEY set in your .env.local file.
-const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY; 
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+const DEFAULT_MODULE_NAME = "openai/gpt-oss-safeguard-20b";
 
 const Index = () => {
   const [inputText, setInputText] = useState("");
   const [extractedJson, setExtractedJson] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
+  const [isModuleNameDialogOpen, setIsModuleNameDialogOpen] = useState(false);
+  const [moduleName, setModuleName] = useState<string>(() => {
+    // Initialize module name from localStorage or use default
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("aiModuleName") || DEFAULT_MODULE_NAME;
+    }
+    return DEFAULT_MODULE_NAME;
+  });
+
+  useEffect(() => {
+    // Update localStorage whenever moduleName changes
+    if (typeof window !== "undefined") {
+      localStorage.setItem("aiModuleName", moduleName);
+    }
+  }, [moduleName]);
 
   const processText = useCallback(async () => {
     if (!inputText.trim()) {
@@ -75,7 +92,7 @@ const Index = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "openai/gpt-oss-safeguard-20b",
+          model: moduleName, // Use the dynamic moduleName
           messages: [{ role: "user", content: prompt }],
           temperature: 0.2,
           response_format: { type: "json_object" },
@@ -105,7 +122,7 @@ const Index = () => {
       setIsLoading(false);
       dismissToast(loadingToastId);
     }
-  }, [inputText]);
+  }, [inputText, moduleName]); // Add moduleName to dependencies
 
   const addToCalendar = useCallback(() => {
     if (!eventDetails || !eventDetails.date_start) {
@@ -133,8 +150,12 @@ const Index = () => {
     }
   }, [eventDetails]);
 
+  const handleSaveModuleName = (newModuleName: string) => {
+    setModuleName(newModuleName);
+  };
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 to-yellow-100 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 to-yellow-100 p-4 sm:p-6 lg:p-8 relative">
       <div className="w-full max-w-3xl space-y-6">
         <h1 className="text-5xl font-extrabold text-center text-orange-600 drop-shadow-lg mb-2">
           Ananas 🍍
@@ -196,6 +217,23 @@ const Index = () => {
           </Card>
         )}
       </div>
+
+      {/* Button to open module name settings */}
+      <Button
+        variant="outline"
+        size="icon"
+        className="fixed bottom-4 left-4 rounded-full shadow-lg bg-white hover:bg-gray-100"
+        onClick={() => setIsModuleNameDialogOpen(true)}
+      >
+        <Settings className="h-5 w-5" />
+      </Button>
+
+      <ModuleNameDialog
+        isOpen={isModuleNameDialogOpen}
+        onClose={() => setIsModuleNameDialogOpen(false)}
+        currentModuleName={moduleName}
+        onSave={handleSaveModuleName}
+      />
     </div>
   );
 };
