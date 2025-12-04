@@ -11,7 +11,7 @@ import { Loader2, CalendarPlus, Settings } from "lucide-react";
 import ModuleNameDialog from "@/components/ModuleNameDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
-import { processTextWithAI } from "@/services/aiService"; // Import the new service
+import { processTextWithAI } from "@/services/aiService";
 
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 const DEFAULT_MODULE_NAME = "openai/gpt-oss-safeguard-20b";
@@ -42,28 +42,52 @@ const Index = () => {
     setExtractedJson(null);
     setEventDetails(null);
 
-    const apiCallPromise = processTextWithAI(
-      inputText,
-      "", // Passing an empty string for userLocation as there's no input for it yet
-      moduleName,
-      OPENROUTER_API_KEY || ""
-    );
+    try {
+      // Get user location
+      const getUserLocation = (): Promise<string> =>
+        new Promise((resolve) => {
+          if (!navigator.geolocation) {
+            resolve("");
+          } else {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                const { latitude, longitude } = position.coords;
+                resolve(`${latitude},${longitude}`);
+              },
+              () => resolve("")
+            );
+          }
+        });
 
-    toast.promise(apiCallPromise, {
-      loading: "Ananas is thinking... 🍍✨",
-      success: (result) => {
-        setExtractedJson(result.extractedJson);
-        setEventDetails(result.eventDetails);
-        return "Event details extracted! ✨";
-      },
-      error: (err: any) => {
-        console.error("Error processing text:", err);
-        return `Failed to process text: ${err.message || "Unknown error"} 💔`;
-      },
-      finally: () => {
-        setIsLoading(false);
-      }
-    });
+      const userLocation = await getUserLocation();
+
+      const apiCallPromise = processTextWithAI(
+        inputText,
+        userLocation,
+        moduleName,
+        OPENROUTER_API_KEY || ""
+      );
+
+      toast.promise(apiCallPromise, {
+        loading: "Ananas is thinking... 🍍✨",
+        success: (result) => {
+          setExtractedJson(result.extractedJson);
+          setEventDetails(result.eventDetails);
+          return "Event details extracted! ✨";
+        },
+        error: (err: any) => {
+          console.error("Error processing text:", err);
+          return `Failed to process text: ${err.message || "Unknown error"} 💔`;
+        },
+        finally: () => {
+          setIsLoading(false);
+        }
+      });
+    } catch (err) {
+      console.error(err);
+      showError("Failed to get user location. 🌍");
+      setIsLoading(false);
+    }
   }, [inputText, moduleName]);
 
   const addToCalendar = useCallback(() => {
@@ -76,11 +100,21 @@ const Index = () => {
       const icsContent = generateIcs(eventDetails);
       const sanitizedTitle = (eventDetails.title || "event").replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
 
-      const isAppleDevice = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && !window.MSStream;
+      const isAppleDevice = /Macintosh|iPhone|iPad/.test(navigator.userAgent);
 
       if (isAppleDevice) {
-        const dataUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
-        window.location.href = dataUrl;
+        const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
         toast.success("Event opened in your Calendar app! 🎉");
         return;
       }
