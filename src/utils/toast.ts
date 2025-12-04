@@ -8,10 +8,5 @@ export const showError = (message: string) => {
   toast.error(message);
 };
 
-export const showLoading = (message: string) => {
-  return toast.loading(message);
-};
-
-export const dismissToast = (toastId: string) => {
-  toast.dismiss(toastId);
-};
+// showLoading and dismissToast are no longer needed for the main processing flow
+// as toast.promise handles the loading state automatically.

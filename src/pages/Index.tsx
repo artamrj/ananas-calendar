@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { showSuccess, showError, showLoading, dismissToast } from "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast"; // Removed showLoading, dismissToast
 import { generateIcs, EventDetails } from "@/lib/ics-generator";
 import { Loader2, CalendarPlus, Settings } from "lucide-react";
 import ModuleNameDialog from "@/components/ModuleNameDialog";
 import { useIsMobile } from "@/hooks/use-mobile"; // Import the hook
+import { toast } from "sonner"; // Import toast directly for promise
 
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 const DEFAULT_MODULE_NAME = "openai/gpt-oss-safeguard-20b";
@@ -48,79 +49,85 @@ const Index = () => {
     setIsLoading(true);
     setExtractedJson(null);
     setEventDetails(null);
-    const loadingToastId = showLoading("Ananas is thinking... 🍍✨");
 
-    try {
-      const now = new Date();
-      const todayDate = now.toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' });
-      const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' });
-      const currentTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const apiCallPromise = (async () => {
+      try {
+        const now = new Date();
+        const todayDate = now.toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' });
+        const currentTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
 
-      const contextString = `Current Date: ${todayDate}, Day of Week: ${dayOfWeek}, Current Time: ${currentTime}.`;
+        const contextString = `Current Date: ${todayDate}, Day of Week: ${dayOfWeek}, Current Time: ${currentTime}.`;
 
-      const prompt = `You are an AI assistant specialized in extracting event details from unstructured text.
-      ${contextString}
-      Detect the language of the input text and return the JSON output in the same language.
-      Extract the following event details into a JSON object. If a field is missing, leave its value as an empty string.
-      The 'title' field should be a concise and specific summary of the event.
-      Dates should be in YYYY-MM-DD format. Times should be in HH:MM (24-hour) format.
-      Recurrence rule should be a valid iCalendar RRULE string.
+        const prompt = `You are an AI assistant specialized in extracting event details from unstructured text.
+        ${contextString}
+        Detect the language of the input text and return the JSON output in the same language.
+        Extract the following event details into a JSON object. If a field is missing, leave its value as an empty string.
+        The 'title' field should be a concise and specific summary of the event.
+        Dates should be in YYYY-MM-DD format. Times should be in HH:MM (24-hour) format.
+        Recurrence rule should be a valid iCalendar RRULE string.
 
-      JSON Structure:
-      {
-        "title": "string",
-        "description": "string",
-        "link": "string",
-        "location": "string",
-        "date_start": "YYYY-MM-DD",
-        "date_end": "YYYY-MM-DD",
-        "time_start": "HH:MM",
-        "time_end": "HH:MM",
-        "recurrence_rule": "string"
+        JSON Structure:
+        {
+          "title": "string",
+          "description": "string",
+          "link": "string",
+          "location": "string",
+          "date_start": "YYYY-MM-DD",
+          "date_end": "YYYY-MM-DD",
+          "time_start": "HH:MM",
+          "time_end": "HH:MM",
+          "recurrence_rule": "string"
+        }
+
+        Return ONLY the JSON object.
+
+        Input Text:
+        "${inputText}"`;
+
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: moduleName,
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.2,
+            response_format: { type: "json_object" },
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `API error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const content = data.choices[0]?.message?.content;
+
+        if (content) {
+          const parsedJson: EventDetails = JSON.parse(content);
+          setExtractedJson(JSON.stringify(parsedJson, null, 2));
+          setEventDetails(parsedJson);
+          return "Event details extracted! ✨"; // Success message for the toast
+        } else {
+          throw new Error("Could not extract event details. 🧐");
+        }
+      } finally {
+        setIsLoading(false); // Ensure loading state is reset regardless of success/failure
       }
+    })(); // Immediately invoke the async function to get the promise
 
-      Return ONLY the JSON object.
-
-      Input Text:
-      "${inputText}"`;
-
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: moduleName,
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.2,
-          response_format: { type: "json_object" },
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `API error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      const content = data.choices[0]?.message?.content;
-
-      if (content) {
-        const parsedJson: EventDetails = JSON.parse(content);
-        setExtractedJson(JSON.stringify(parsedJson, null, 2));
-        setEventDetails(parsedJson);
-        showSuccess("Event details extracted! ✨");
-      } else {
-        showError("Could not extract event details. 🧐");
-      }
-    } catch (error: any) {
-      console.error("Error processing text:", error);
-      showError(`Failed to process text: ${error.message || "Unknown error"} 💔`);
-    } finally {
-      setIsLoading(false);
-      dismissToast(String(loadingToastId));
-    }
+    toast.promise(apiCallPromise, {
+      loading: "Ananas is thinking... 🍍✨",
+      success: (message) => message, // Use the message returned by the promise
+      error: (err: any) => {
+        console.error("Error processing text:", err);
+        return `Failed to process text: ${err.message || "Unknown error"} 💔`;
+      },
+    });
   }, [inputText, moduleName]);
 
   const addToCalendar = useCallback(() => {
