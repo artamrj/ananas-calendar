@@ -36,10 +36,10 @@ const getCurrentContext = (locale?: string, timeZone?: string): string => {
 };
 
 /** Build AI prompt */
-const buildPrompt = (inputText: string, context: string, location: string): string => `
+const buildPrompt = (inputText: string, context: string, location?: string): string => `
 You are an AI assistant specialized in extracting event details from unstructured text.
 ${context}
-The event location is: ${location}
+${location ? `The event location is: ${location}` : ''}
 Detect the language of the input text and return the JSON output in the same language.
 Extract the following event details into a JSON object. If a field is missing, leave its value as an empty string.
 The 'title' field should be a concise and specific summary of the event.
@@ -68,14 +68,13 @@ Input Text:
 /** Main service to process text with AI */
 export const processTextWithAI = async (
   inputText: string,
-  userLocation: string,
-  locale?: string,
-  timeZone?: string,
+  userLocation: string = "", // Made optional with a default empty string
   moduleName: string = DEFAULT_MODULE_NAME,
   openRouterApiKey?: string,
+  locale?: string,
+  timeZone?: string,
 ): Promise<ProcessTextResult> => {
   if (!inputText.trim()) throw new Error("Input text is empty. 📝");
-  if (!userLocation.trim()) throw new Error("Location is required. 📍");
   if (!openRouterApiKey) throw new Error("OpenRouter API Key is missing. 🔑");
 
   const context = getCurrentContext(locale, timeZone);

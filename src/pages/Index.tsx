@@ -44,8 +44,9 @@ const Index = () => {
 
     const apiCallPromise = processTextWithAI(
       inputText,
+      "", // Passing an empty string for userLocation as there's no input for it yet
       moduleName,
-      OPENROUTER_API_KEY || "" // Pass the API key
+      OPENROUTER_API_KEY || ""
     );
 
     toast.promise(apiCallPromise, {
