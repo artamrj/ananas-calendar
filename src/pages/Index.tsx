@@ -137,7 +137,9 @@ const Index = () => {
 
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${eventDetails.title || "event"}.ics`;
+      // Sanitize the title for the filename to avoid issues with special characters in Safari
+      const sanitizedTitle = (eventDetails.title || "event").replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
+      a.download = `${sanitizedTitle}.ics`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
