@@ -128,7 +128,7 @@ const Index = () => {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 to-yellow-100 p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-3xl space-y-6">
         <h1 className="text-5xl font-extrabold text-center text-orange-600 drop-shadow-lg">
-          Ananas 🍍✨
+          Ananas
         </h1>
         <p className="text-xl text-center text-gray-700 mb-8">
           Peel, paste, plan—Ananas style!
