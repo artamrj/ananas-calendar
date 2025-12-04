@@ -44,8 +44,9 @@ const Index = () => {
 
       const prompt = `You are an AI assistant specialized in extracting event details from unstructured text.
       ${contextString}
-      Detect the language of the input text.
+      Detect the language of the input text and return the JSON output in the same language.
       Extract the following event details into a JSON object. If a field is missing, leave its value as an empty string.
+      The 'title' field should be a concise and specific summary of the event.
       Dates should be in YYYY-MM-DD format. Times should be in HH:MM (24-hour) format.
       Recurrence rule should be a valid iCalendar RRULE string (e.g., "FREQ=DAILY;COUNT=10", "FREQ=WEEKLY;BYDAY=MO,WE", "FREQ=MONTHLY;BYMONTHDAY=15").
 
