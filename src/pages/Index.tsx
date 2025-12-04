@@ -10,7 +10,7 @@ import { generateIcs, EventDetails } from "@/lib/ics-generator";
 import { Loader2, CalendarPlus, Settings } from "lucide-react";
 import ModuleNameDialog from "@/components/ModuleNameDialog";
 
-const OPENROUTER_API_KEY = import.meta.env.OPENROUTER_API_KEY;
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 const DEFAULT_MODULE_NAME = "openai/gpt-oss-safeguard-20b";
 
 const Index = () => {
