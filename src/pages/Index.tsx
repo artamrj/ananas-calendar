@@ -15,6 +15,10 @@ import ModuleNameDialog from "@/components/ModuleNameDialog"; // Import the new 
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 const DEFAULT_MODULE_NAME = "openai/gpt-oss-safeguard-20b";
 
+// Helper function for device detection
+const isIOSDevice = () =>
+  typeof window !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+
 const Index = () => {
   const [inputText, setInputText] = useState("");
   const [extractedJson, setExtractedJson] = useState<string | null>(null);
@@ -137,9 +141,6 @@ const Index = () => {
       const sanitizedTitle = (eventDetails.title || "event").replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
       const fileName = `${sanitizedTitle}.ics`;
 
-      const isIOSDevice = () =>
-        typeof window !== "undefined" && /iP(hone|ad|od)/i.test(window.navigator.userAgent);
-
       // Use the native share sheet when possible (iOS 13+ supports ICS via Share API)
       const canUseShareApi =
         typeof navigator !== "undefined" &&
@@ -162,7 +163,7 @@ const Index = () => {
             return;
           }
         } catch (shareError) {
-          console.warn("Native share failed, falling back to download", shareError);
+          console.warn("Native share failed, falling back to other methods", shareError);
         }
       }
 
@@ -173,6 +174,8 @@ const Index = () => {
         return;
       }
 
+      // For macOS and other desktop browsers, the file must be downloaded.
+      // The OS typically opens .ics files with the default calendar application.
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -182,7 +185,7 @@ const Index = () => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      showSuccess("Event downloaded to your calendar! 🎉");
+      showSuccess("Event downloaded and ready to be added to your calendar! 🎉");
     } catch (error: any) {
       console.error("Error generating ICS:", error);
       showError(`Failed to add event to calendar: ${error.message || "Unknown error"} 😭`);
