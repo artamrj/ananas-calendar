@@ -71,7 +71,7 @@ const EventDetailsDisplay: React.FC<EventDetailsDisplayProps> = ({ eventDetails 
 
   return (
     <>
-      <CardHeader className="pb-4 border-b border-gray-100 mb-4 p-0">
+      <CardHeader className="pb-4 border-b border-gray-100 mb-4"> {/* Removed p-0 */}
         <CardTitle className="text-3xl font-extrabold text-orange-700">
           {eventDetails.title || "Untitled Event"}
         </CardTitle>
@@ -81,7 +81,7 @@ const EventDetailsDisplay: React.FC<EventDetailsDisplayProps> = ({ eventDetails 
           </CardDescription>
         )}
       </CardHeader>
-      <CardContent className="space-y-4 text-gray-800 p-0">
+      <CardContent className="space-y-4 text-gray-800"> {/* Removed p-0 */}
         {eventDetails.date_start && (
           <div className="flex items-start space-x-3">
             <Calendar className="h-6 w-6 text-orange-500 flex-shrink-0 mt-1" />
