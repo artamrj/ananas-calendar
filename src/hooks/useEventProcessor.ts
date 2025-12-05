@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { processTextWithAI } from "@/services/aiService"; // Your existing service
+import { processTextWithAI } from "@/services/aiService";
 import { EventDetails } from "@/lib/ics-generator";
 
 interface UseEventProcessorReturn {
@@ -8,6 +8,8 @@ interface UseEventProcessorReturn {
   extractedJson: string | null;
   eventDetails: EventDetails | null;
   processText: (text: string, moduleName: string, apiKey: string) => Promise<void>;
+  setExtractedJson: React.Dispatch<React.SetStateAction<string | null>>; // Added setter
+  setEventDetails: React.Dispatch<React.SetStateAction<EventDetails | null>>; // Added setter
 }
 
 export const useEventProcessor = (): UseEventProcessorReturn => {
@@ -39,5 +41,5 @@ export const useEventProcessor = (): UseEventProcessorReturn => {
     });
   }, []);
 
-  return { isLoading, extractedJson, eventDetails, processText };
+  return { isLoading, extractedJson, eventDetails, processText, setExtractedJson, setEventDetails };
 };
