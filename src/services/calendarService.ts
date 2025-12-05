@@ -23,11 +23,11 @@ export const handleCalendarExport = (eventDetails: EventDetails | null) => {
       const dataUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
       const a = document.createElement("a");
       a.href = dataUrl;
-      a.setAttribute("download", `${sanitizedTitle}.ics`); // Provide a filename even for data URLs
+      // Removed the 'download' attribute to encourage direct opening by the OS
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      toast.success("Opening in Calendar... 🍍📆");
+      toast.success("Attempting to open in Calendar... (you may need to open the downloaded file) 🍍📆");
       return;
     }
 
@@ -42,7 +42,7 @@ export const handleCalendarExport = (eventDetails: EventDetails | null) => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    toast.success("Event file downloaded! 📥");
+    toast.success("Event file downloaded! (please open it to add to calendar) 📥");
   } catch (error: any) {
     console.error(error);
     showError(`Failed to add event to calendar: ${error.message || "Unknown error"} 😭`);
