@@ -59,11 +59,12 @@ const Index = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col space-y-4 p-0">
-                <EventDetailsDisplay eventDetails={eventDetails} />
-                {showJsonRaw && (
+                {showJsonRaw ? (
                   <pre className="mt-4 p-4 bg-gray-50 rounded-md text-sm overflow-auto max-h-60 border border-gray-200">
                     <code>{extractedJson}</code>
                   </pre>
+                ) : (
+                  <EventDetailsDisplay eventDetails={eventDetails} />
                 )}
               </CardContent>
             </>
