@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, CalendarPlus, Settings, RefreshCcw, Sparkles } from "lucide-react"; // Added Sparkles icon
+import { Loader2, CalendarPlus, Settings, RefreshCcw } from "lucide-react";
 import ModuleNameDialog from "@/components/ModuleNameDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { handleCalendarExport } from "@/services/calendarService";
@@ -26,11 +26,6 @@ const Index = () => {
 
   const handleProcessClick = () => processText(inputText, moduleName, OPENROUTER_API_KEY);
   const handleExportClick = () => handleCalendarExport(eventDetails);
-
-  const handleRegenerateClick = () => {
-    // Re-process the existing inputText
-    processText(inputText, moduleName, OPENROUTER_API_KEY);
-  };
 
   const handleBackToInput = () => {
     setExtractedJson(null);
@@ -105,23 +100,6 @@ const Index = () => {
             >
               <CalendarPlus className="h-5 w-5" />
               <span>Add to Calendar 🗓️</span>
-            </Button>
-            <Button
-              onClick={handleRegenerateClick}
-              disabled={isLoading}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-xl text-base sm:text-lg flex items-center justify-center space-x-2 shadow-md"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>Regenerating...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-5 w-5" />
-                  <span>Regenerate with AI</span>
-                </>
-              )}
             </Button>
             <Button
               variant="outline"
