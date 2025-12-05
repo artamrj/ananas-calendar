@@ -3,7 +3,10 @@ export const formatRrule = (rrule: string | undefined): string | undefined => {
     return undefined;
   }
 
-  const parts = rrule.split(';').reduce((acc, part) => {
+  // Strip "RRULE:" prefix if present
+  const cleanRrule = rrule.startsWith('RRULE:') ? rrule.substring(6) : rrule;
+
+  const parts = cleanRrule.split(';').reduce((acc, part) => {
     const [key, value] = part.split('=');
     if (key && value) {
       acc[key] = value;
@@ -48,7 +51,9 @@ export const formatRrule = (rrule: string | undefined): string | undefined => {
       humanReadable = 'Yearly';
       break;
     default:
-      return rrule; // Return original if frequency is not recognized
+      // If frequency is not recognized, return the cleaned rule,
+      // as it might be a valid but unhandled RRULE part.
+      return cleanRrule;
   }
 
   if (count) {
