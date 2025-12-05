@@ -4,6 +4,7 @@ import React from "react";
 import { EventDetails } from "@/lib/ics-generator";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Clock, MapPin, Link, Repeat, Info } from "lucide-react";
+import { formatRecurrenceRule } from "@/utils/recurrenceFormatter"; // Import the new utility
 
 interface EventDetailsDisplayProps {
   eventDetails: EventDetails | null;
@@ -69,6 +70,8 @@ const EventDetailsDisplay: React.FC<EventDetailsDisplayProps> = ({ eventDetails 
     return `${start} - ${end}`;
   };
 
+  const formattedRecurrence = formatRecurrenceRule(eventDetails.recurrence_rule);
+
   return (
     <>
       <CardHeader className="pb-4 border-b border-gray-100 mb-4"> {/* Removed p-0 */}
@@ -113,11 +116,11 @@ const EventDetailsDisplay: React.FC<EventDetailsDisplayProps> = ({ eventDetails 
             </a>
           </div>
         )}
-        {eventDetails.recurrence_rule && (
-          <div className="flex items-start space-x-3">
-            <Repeat className="h-6 w-6 text-orange-500 flex-shrink-0 mt-1" />
-            <span className="text-sm text-gray-500 italic">
-              Recurrence: {eventDetails.recurrence_rule}
+        {formattedRecurrence && ( // Display formatted recurrence
+          <div className="flex items-start space-x-3 p-2 bg-orange-50 rounded-md border border-orange-200">
+            <Repeat className="h-6 w-6 text-orange-600 flex-shrink-0 mt-1" />
+            <span className="text-base text-orange-800 font-medium">
+              {formattedRecurrence}
             </span>
           </div>
         )}
