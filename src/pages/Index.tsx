@@ -44,22 +44,14 @@ const Index = () => {
         </p>
       </header>
 
-      {/* Main Content - Single Dynamic Card */}
+      {/* Main Content - Single Dynamic Card and Buttons */}
       <main className="flex-1 flex flex-col items-center overflow-hidden space-y-6 sm:space-y-8">
         <Card className="w-full max-w-3xl flex flex-col bg-white shadow-xl border-none rounded-xl p-4 sm:p-6">
           {extractedJson ? (
             // Extracted Event Details View
             <>
-              <CardHeader className="p-0 mb-3 flex flex-row items-center justify-between">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleBackToInput}
-                  className="text-gray-600 hover:text-gray-800"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800 flex-1 text-center pr-10">
+              <CardHeader className="p-0 mb-3 flex flex-row items-center justify-center">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800">
                   Extracted Event Details
                 </CardTitle>
               </CardHeader>
@@ -67,13 +59,6 @@ const Index = () => {
                 <pre className="bg-gray-50 p-3 rounded-lg text-sm sm:text-base overflow-x-auto">
                   <code>{extractedJson}</code>
                 </pre>
-                <Button
-                  onClick={handleExportClick}
-                  className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg text-base sm:text-lg flex items-center justify-center space-x-2"
-                >
-                  <CalendarPlus className="h-5 w-5" />
-                  <span>Add to Calendar 🗓️</span>
-                </Button>
               </CardContent>
             </>
           ) : (
@@ -94,26 +79,48 @@ const Index = () => {
                   rows={isMobile ? 6 : 8}
                   className="w-full resize-none border-2 border-orange-200 focus:border-orange-400 rounded-lg p-3 text-base sm:text-lg"
                 />
-                <Button
-                  onClick={handleProcessClick}
-                  disabled={isLoading}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg text-base sm:text-lg flex items-center justify-center space-x-2"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      <span>Processing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Process Text with AI 🧠</span>
-                    </>
-                  )}
-                </Button>
               </CardContent>
             </>
           )}
         </Card>
+
+        {/* Buttons outside the card */}
+        {extractedJson ? (
+          <div className="w-full max-w-3xl flex flex-col space-y-4">
+            <Button
+              onClick={handleExportClick}
+              className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg text-base sm:text-lg flex items-center justify-center space-x-2"
+            >
+              <CalendarPlus className="h-5 w-5" />
+              <span>Add to Calendar 🗓️</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleBackToInput}
+              className="w-full text-gray-600 hover:text-gray-800 border-gray-300 hover:border-gray-400 py-3 px-6 rounded-lg text-base sm:text-lg flex items-center justify-center space-x-2"
+            >
+              <ArrowLeft className="h-5 w-5" />
+              <span>Back to Input</span>
+            </Button>
+          </div>
+        ) : (
+          <Button
+            onClick={handleProcessClick}
+            disabled={isLoading}
+            className="w-full max-w-3xl bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg text-base sm:text-lg flex items-center justify-center space-x-2"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>Processing...</span>
+              </>
+            ) : (
+              <>
+                <span>Process Text with AI 🧠</span>
+              </>
+            )}
+          </Button>
+        )}
       </main>
 
       {/* Settings Button & Dialog */}
