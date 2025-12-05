@@ -43,7 +43,7 @@ const EventDetailsDisplay: React.FC<EventDetailsDisplayProps> = ({ eventDetails 
       return new Intl.DateTimeFormat(navigator.language, {
         hour: '2-digit',
         minute: '2-digit',
-        hour12: true,
+        hour12: false, // Changed to false for 24-hour format
       }).format(date);
     } catch (e) {
       console.error("Error formatting time:", timeString, e);
