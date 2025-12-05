@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, CalendarPlus, Settings, ArrowLeft } from "lucide-react";
+import { Loader2, CalendarPlus, Settings, PlusCircle } from "lucide-react"; // Changed ArrowLeft to PlusCircle
 import ModuleNameDialog from "@/components/ModuleNameDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { handleCalendarExport } from "@/services/calendarService";
 import { useEventProcessor } from "@/hooks/useEventProcessor";
 import { useAppSettings } from "@/hooks/useAppSettings";
-import EventDetailsDisplay from "@/components/EventDetailsDisplay"; // Import the new component
+import EventDetailsDisplay from "@/components/EventDetailsDisplay";
 
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || "";
 
@@ -57,7 +57,7 @@ const Index = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col space-y-4 p-0">
-                <EventDetailsDisplay eventDetails={eventDetails} /> {/* Using the new component */}
+                <EventDetailsDisplay eventDetails={eventDetails} />
               </CardContent>
             </>
           ) : (
@@ -98,14 +98,14 @@ const Index = () => {
               onClick={handleBackToInput}
               className="w-full text-gray-600 hover:text-gray-800 border-gray-300 hover:border-gray-400 py-3 px-6 rounded-xl text-base sm:text-lg flex items-center justify-center space-x-2 shadow-md"
             >
-              <ArrowLeft className="h-5 w-5" />
-              <span>Back to Input</span>
+              <PlusCircle className="h-5 w-5" /> {/* Changed icon */}
+              <span>Start New Event</span> {/* Changed text */}
             </Button>
           </div>
         ) : (
           <Button
             onClick={handleProcessClick}
-            disabled={inputText.trim() === "" || isLoading} // Disable if input is empty
+            disabled={inputText.trim() === "" || isLoading}
             className="w-full max-w-3xl bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-xl text-base sm:text-lg flex items-center justify-center space-x-2 shadow-md"
           >
             {isLoading ? (
