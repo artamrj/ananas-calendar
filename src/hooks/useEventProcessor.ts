@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { processTextWithAI } from "@/services/aiService";
+import { summarizeEventDescription } from "@/services/summarizationService"; // Import the new service
 import { EventDetails } from "@/lib/ics-generator";
 
 interface UseEventProcessorReturn {
@@ -8,8 +9,8 @@ interface UseEventProcessorReturn {
   extractedJson: string | null;
   eventDetails: EventDetails | null;
   processText: (text: string, moduleName: string, apiKey: string) => Promise<void>;
-  setExtractedJson: React.Dispatch<React.SetStateAction<string | null>>; // Added setter
-  setEventDetails: React.Dispatch<React.SetStateAction<EventDetails | null>>; // Added setter
+  setExtractedJson: React.Dispatch<React.SetStateAction<string | null>>;
+  setEventDetails: React.Dispatch<React.SetStateAction<EventDetails | null>>;
 }
 
 export const useEventProcessor = (): UseEventProcessorReturn => {
@@ -22,15 +23,30 @@ export const useEventProcessor = (): UseEventProcessorReturn => {
     setExtractedJson(null);
     setEventDetails(null);
 
-    const apiCallPromise = processTextWithAI(text, "", moduleName, apiKey);
+    const apiCallPromise = processTextWithAI(text, "", moduleName, apiKey)
+      .then(async (result) => { // Make this async to await summarization
+        let finalEventDetails = result.eventDetails;
+
+        if (finalEventDetails.description && finalEventDetails.description.length > 250) {
+          const summarizedDescription = await summarizeEventDescription(
+            finalEventDetails.description,
+            moduleName,
+            apiKey
+          );
+          finalEventDetails = {
+            ...finalEventDetails,
+            description: summarizedDescription,
+          };
+        }
+
+        setExtractedJson(JSON.stringify(finalEventDetails, null, 2)); // Update extractedJson with potentially summarized description
+        setEventDetails(finalEventDetails);
+        return "Event details extracted and summarized! ✨"; // Success message
+      });
 
     toast.promise(apiCallPromise, {
       loading: "Ananas is thinking... 🍍✨",
-      success: (result) => {
-        setExtractedJson(result.extractedJson);
-        setEventDetails(result.eventDetails);
-        return "Event details extracted! ✨";
-      },
+      success: (message) => message, // Use the message returned from the promise
       error: (err: any) => {
         console.error("Error processing text:", err);
         return `Failed to process text: ${err.message || "Unknown error"} 💔`;
