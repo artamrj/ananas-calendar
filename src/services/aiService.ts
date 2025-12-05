@@ -9,8 +9,10 @@ export interface ProcessTextResult {
 
 /** Format current date/time using user's locale and timezone */
 const getCurrentContext = (locale?: string, timeZone?: string): string => {
-  const userLocale = locale || (typeof navigator !== "undefined" ? navigator.language : "en-US");
-  const userTimeZone = timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  const userLocale =
+    locale || (typeof navigator !== "undefined" ? navigator.language : "en-US");
+  const userTimeZone =
+    timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
   const now = new Date();
 
   const todayDate = now.toLocaleDateString(userLocale, {
@@ -36,18 +38,26 @@ const getCurrentContext = (locale?: string, timeZone?: string): string => {
 };
 
 /** Build AI prompt */
-const buildPrompt = (inputText: string, context: string, location?: string): string => `
-You are an AI assistant specialized in extracting event details from unstructured text.
-${context}
-${location ? `The event location is: ${location}` : ''}
-Detect the language of the input text and return the JSON output in the same language.
-Extract the following event details into a JSON object. If a field is missing, leave its value as an empty string.
-The 'title' field should be a concise and specific summary of the event.
-Dates should be in YYYY-MM-DD format. Times should be in HH:MM (24-hour) format.
-Recurrence rule should be a valid iCalendar RRULE string.
-IMPORTANT: If the input describes a recurring event but does not specify a start date, use the Current Date(if today is saturday, than user told the monday, start date is from monday) from the context as the 'date_start'.
+const buildPrompt = (
+  inputText: string,
+  context: string,
+  location?: string
+): string => `
+You are an AI assistant designed to extract structured event information from unstructured text with high precision and consistency.
 
-JSON Structure:
+Your tasks:
+1. Identify the language of the input text and produce the final JSON in that same language.
+2. Interpret all provided context and use it to enhance the accuracy of extracted fields.
+3. If a location parameter is provided, treat it as authoritative for the event unless the input text clearly specifies a different one.
+4. Extract all event-related details and populate the JSON fields exactly as defined. When information is missing, return an empty string for that field.
+5. The "title" must be a short, specific summary that captures the essence of the event.
+6. Normalize dates to YYYY-MM-DD format and times to HH:MM (24-hour) format.
+7. The recurrence rule must follow the iCalendar RRULE specification.
+8. If the text describes a recurring event but does not include a start date, determine the correct start date using the Current Date from the provided context:
+   - If the text references a weekday relative to the current day, compute the upcoming occurrence of that weekday.
+   - If no weekday or temporal reference is provided, default to the current date itself.
+
+Required JSON output (return this object and nothing else):
 {
   "title": "string",
   "description": "string",
@@ -60,7 +70,10 @@ JSON Structure:
   "recurrence_rule": "string"
 }
 
-Return ONLY the JSON object.
+Context:
+${context}
+
+${location ? `Event Location Override: ${location}` : ""}
 
 Input Text:
 "${inputText}"
@@ -73,7 +86,7 @@ export const processTextWithAI = async (
   moduleName: string = DEFAULT_MODULE_NAME,
   openRouterApiKey?: string,
   locale?: string,
-  timeZone?: string,
+  timeZone?: string
 ): Promise<ProcessTextResult> => {
   if (!inputText.trim()) throw new Error("Input text is empty. 📝");
   if (!openRouterApiKey) throw new Error("OpenRouter API Key is missing. 🔑");
@@ -81,19 +94,22 @@ export const processTextWithAI = async (
   const context = getCurrentContext(locale, timeZone);
   const prompt = buildPrompt(inputText, context, userLocation);
 
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${openRouterApiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: moduleName,
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.2,
-      response_format: { type: "json_object" },
-    }),
-  });
+  const response = await fetch(
+    "https://openrouter.ai/api/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${openRouterApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: moduleName,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.2,
+        response_format: { type: "json_object" },
+      }),
+    }
+  );
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
