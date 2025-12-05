@@ -38,20 +38,28 @@ export const generateIcs = (event: EventDetails): string => {
   const dtStart = formatDateTime(event.date_start, event.time_start);
   icsContent.push(`DTSTART${event.time_start ? '' : ';VALUE=DATE'}:${dtStart}`);
 
-  if (event.date_end || event.time_end) {
-    const dtEnd = formatDateTime(event.date_end || event.date_start, event.time_end);
-    icsContent.push(`DTEND${event.time_end ? '' : ';VALUE=DATE'}:${dtEnd}`);
-  } else if (!event.time_start) {
-    // For all-day events without an explicit end date, ICS requires DTEND to be the next day
-    const [year, month, day] = event.date_start.split('-').map(Number);
-    const nextDay = new Date(Date.UTC(year, month - 1, day + 1));
-    icsContent.push(`DTEND;VALUE=DATE:${nextDay.toISOString().split('T')[0].replace(/-/g, '')}`);
-  }
+  let dtEnd: string;
+  let dtEndProperty = 'DTEND';
 
-
-  if (event.title) {
-    icsContent.push(`SUMMARY:${event.title}`);
+  if (event.time_start) { // If DTSTART has a time, DTEND must also have a time
+    const endTime = event.time_end || event.time_start; // Fallback to start time if end time is missing
+    dtEnd = formatDateTime(event.date_end || event.date_start, endTime);
+  } else { // If DTSTART is an all-day event
+    dtEndProperty += ';VALUE=DATE';
+    if (event.date_end) {
+      dtEnd = formatDateTime(event.date_end);
+    } else {
+      // For all-day events without an explicit end date, ICS requires DTEND to be the next day
+      const [year, month, day] = event.date_start.split('-').map(Number);
+      const nextDay = new Date(Date.UTC(year, month - 1, day + 1));
+      dtEnd = nextDay.toISOString().split('T')[0].replace(/-/g, '');
+    }
   }
+  icsContent.push(`${dtEndProperty}:${dtEnd}`);
+
+  // Ensure SUMMARY is always present, with a fallback title
+  icsContent.push(`SUMMARY:${event.title || 'Untitled Event'}`);
+  
   if (event.description) {
     icsContent.push(`DESCRIPTION:${event.description}`);
   }
