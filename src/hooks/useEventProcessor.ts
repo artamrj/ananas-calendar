@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { processTextWithAI } from "@/services/aiService";
-import { summarizeEventDescription } from "@/services/summarizationService";
+import { processTextWithAI, summarizeEventDescription } from "@/services/aiService"; // Updated import
 import { EventDetails } from "@/lib/ics-generator";
 
 interface UseEventProcessorReturn {
@@ -32,7 +31,7 @@ export const useEventProcessor = (): UseEventProcessorReturn => {
     // via clearEventDetails. For regeneration, we want to keep the old data
     // visible until new data arrives.
 
-    const apiCallPromise = processTextWithAI(text, "", moduleName, apiKey)
+    const apiCallPromise = processTextWithAI(text, moduleName, apiKey) // Removed userLocation
       .then(async (result) => {
         let finalEventDetails = result.eventDetails;
 
