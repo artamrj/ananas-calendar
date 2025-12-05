@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, CalendarPlus, Settings, PlusCircle } from "lucide-react"; // Changed ArrowLeft to PlusCircle
+import { Loader2, CalendarPlus, Settings, RefreshCcw } from "lucide-react"; // Changed PlusCircle to RefreshCcw
 import ModuleNameDialog from "@/components/ModuleNameDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { handleCalendarExport } from "@/services/calendarService";
@@ -98,8 +98,8 @@ const Index = () => {
               onClick={handleBackToInput}
               className="w-full text-gray-600 hover:text-gray-800 border-gray-300 hover:border-gray-400 py-3 px-6 rounded-xl text-base sm:text-lg flex items-center justify-center space-x-2 shadow-md"
             >
-              <PlusCircle className="h-5 w-5" /> {/* Changed icon */}
-              <span>Start New Event</span> {/* Changed text */}
+              <RefreshCcw className="h-5 w-5" /> {/* Changed icon */}
+              <span>Start New Event</span>
             </Button>
           </div>
         ) : (
