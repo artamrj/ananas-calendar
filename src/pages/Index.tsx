@@ -5,52 +5,38 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, CalendarPlus, Settings, RefreshCcw, ChevronDown } from "lucide-react";
+import { Loader2, CalendarPlus, Settings, RefreshCcw } from "lucide-react";
 import ModuleNameDialog from "@/components/ModuleNameDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { handleCalendarExport } from "@/services/calendarService";
 import { useEventProcessor } from "@/hooks/useEventProcessor";
 import { useAppSettings } from "@/hooks/useAppSettings";
 import EventDetailsDisplay from "@/components/EventDetailsDisplay";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || "";
 
 const Index = () => {
   const [inputText, setInputText] = useState("");
   const [isModuleNameDialogOpen, setIsModuleNameDialogOpen] = useState(false);
-  const [showJsonRaw, setShowJsonRaw] = useState(false);
+  const [showJsonRaw, setShowJsonRaw] = useState(false); // New state for toggling JSON display
 
   const isMobile = useIsMobile();
   const { moduleName, setModuleName } = useAppSettings();
-  const { isLoading, extractedJson, eventDetails, processText, clearEventDetails } = useEventProcessor();
+  const { isLoading, extractedJson, eventDetails, processText, clearEventDetails } = useEventProcessor(); // Destructure clearEventDetails
 
   const handleProcessClick = () => processText(inputText, moduleName, OPENROUTER_API_KEY);
   const handleExportClick = () => handleCalendarExport(eventDetails);
-  const handleRegenerateClick = (overrideModule?: string) => processText(inputText, moduleName, OPENROUTER_API_KEY, overrideModule);
+  const handleRegenerateClick = () => processText(inputText, moduleName, OPENROUTER_API_KEY); // Re-process with current input
 
   const handleBackToInput = () => {
-    clearEventDetails();
-    setInputText("");
-    setShowJsonRaw(false);
+    clearEventDetails(); // Use the new clear function from the hook
+    setInputText(""); // Clear input text when going back
+    setShowJsonRaw(false); // Reset JSON display state
   };
-
-  const aiModuleOptions = [
-    { label: `Current: ${moduleName}`, value: moduleName },
-    { label: "OpenAI GPT-4o (Free)", value: "openai/gpt-oss-safeguard-20b:free" },
-    { label: "Google Gemma 27B (Free)", value: "google/gemma-3-27b-it:free" },
-  ];
 
   return (
     <div className="min-h-screen w-screen flex flex-col bg-gradient-to-br from-orange-50 to-yellow-100 p-4 sm:p-6 lg:p-8">
-
+      
       {/* Header */}
       <header className="flex flex-col items-center justify-center text-center mb-6 flex-shrink-0">
         <h1 className="text-4xl sm:text-5xl font-extrabold text-orange-600 drop-shadow-lg mb-2">
@@ -67,41 +53,24 @@ const Index = () => {
           {extractedJson ? (
             // Extracted Event Details View
             <>
-              <CardHeader className="p-0 mb-3 flex flex-row items-center justify-between relative">
+              <CardHeader className="p-0 mb-3 flex flex-row items-center justify-between relative"> {/* Added relative for absolute positioning */}
                 <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800">
                   Extracted Event Details
                 </CardTitle>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute top-0 right-0 h-8 w-8 text-orange-500 hover:bg-orange-50 hover:text-orange-600"
-                      disabled={isLoading}
-                      title="Regenerate with AI"
-                    >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <RefreshCcw className="h-4 w-4" />
-                      )}
-                      <ChevronDown className="ml-1 h-3 w-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Choose AI Module</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {aiModuleOptions.map((option) => (
-                      <DropdownMenuItem
-                        key={option.value}
-                        onClick={() => handleRegenerateClick(option.value)}
-                        disabled={isLoading}
-                      >
-                        {option.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-0 right-0 h-8 w-8 text-orange-500 hover:bg-orange-50 hover:text-orange-600"
+                  onClick={handleRegenerateClick}
+                  disabled={isLoading}
+                  title="Regenerate with AI"
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCcw className="h-4 w-4" />
+                  )}
+                </Button>
               </CardHeader>
               <CardContent className="flex flex-col space-y-4 p-0">
                 {showJsonRaw ? (
@@ -154,6 +123,7 @@ const Index = () => {
               <RefreshCcw className="h-5 w-5" />
               <span>Start New Event</span>
             </Button>
+            {/* New button to toggle JSON display */}
             <Button
               variant="link"
               onClick={() => setShowJsonRaw(!showJsonRaw)}

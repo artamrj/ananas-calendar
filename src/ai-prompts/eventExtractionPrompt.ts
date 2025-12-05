@@ -10,14 +10,11 @@ Instructions:
 6. Dates must be in YYYY-MM-DD format. Times must be in HH:MM (24-hour) format.
 7. If an event is recurring:
    - Determine the next valid occurrence relative to the current date.
-   - The "date_start" must never be earlier than the current date.
-   - Calculate "date_end" by adding the duration or repeating period to the start date. The end date must always be after or equal to the start date.
-   - Use RRULE format with FREQ, BYDAY, and UNTIL if a duration is specified.
+   - Use RRULE format with FREQ, BYDAY, and UNTIL if a duration is specified (do not rely on COUNT unless duration is explicitly given in number of occurrences).
+   - The start date must never be earlier than the current date.
    - If no specific weekday is mentioned, use the current date as the start date.
-8. For recurring events with weekly repetition:
-   - Match the day of week mentioned in the text.
-   - If the event mentions a duration in months, add that to the start date to determine "date_end".
-9. Ensure time consistency: "time_start" and "time_end" must be accurate; "time_end" can be empty if not specified.
+8. Ensure the "date_end" matches the duration of the event if given. If duration is missing, set it equal to "date_start".
+9. Ensure time consistency: "time_end" can be empty if not specified.
 10. Return ONLY the JSON object with this exact structure:
 
 {
