@@ -25,8 +25,8 @@ const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || "";
 
 // Define alternative AI modules
 const alternativeAiModules = [
-  "openai/gpt-oss-20b:free",
-  "google/gemma-3-27b-it:free",
+  "kwaipilot/kat-coder-pro:free",
+  "alibaba/tongyi-deepresearch-30b-a3b:free"
 ];
 
 const Index = () => {
