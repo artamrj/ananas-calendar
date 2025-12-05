@@ -11,10 +11,6 @@ export const handleCalendarExport = (eventDetails: EventDetails | null) => {
   try {
     const icsContent = generateIcs(eventDetails);
     const sanitizedTitle = (eventDetails.title || "event").replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
-    
-    // --- ADDED FOR DEBUGGING ---
-    console.log("Sanitized Title for download:", sanitizedTitle);
-    // ---------------------------
 
     // 1. Detect OS
     const userAgent = window.navigator.userAgent.toLowerCase();
