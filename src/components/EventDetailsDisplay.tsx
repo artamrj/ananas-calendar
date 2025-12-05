@@ -12,8 +12,8 @@ interface EventDetailsDisplayProps {
 const EventDetailsDisplay: React.FC<EventDetailsDisplayProps> = ({ eventDetails }) => {
   if (!eventDetails) {
     return (
-      <div className="text-center text-gray-500 py-8">
-        No event details to display.
+      <div className="text-center text-gray-500 py-8 text-lg italic">
+        No event details to display. Please process some text.
       </div>
     );
   }
@@ -71,61 +71,61 @@ const EventDetailsDisplay: React.FC<EventDetailsDisplayProps> = ({ eventDetails 
 
   return (
     <div className="space-y-4">
-      <Card className="bg-white shadow-sm border-none">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-2xl font-bold text-gray-900">
+      <Card className="bg-white shadow-lg border border-gray-200 rounded-xl p-4">
+        <CardHeader className="pb-3 px-0 pt-0">
+          <CardTitle className="text-3xl font-extrabold text-gray-900 mb-1">
             {eventDetails.title || "Untitled Event"}
           </CardTitle>
           {eventDetails.description && (
-            <CardDescription className="text-gray-700 mt-2">
+            <CardDescription className="text-gray-600 text-base">
               {eventDetails.description}
             </CardDescription>
           )}
         </CardHeader>
-        <CardContent className="space-y-3 text-gray-800">
+        <CardContent className="space-y-5 text-gray-800 px-0 pb-0">
           {eventDetails.date_start && (
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-5 w-5 text-orange-500" />
-              <span className="font-medium">{displayDate()}</span>
+            <div className="flex items-start space-x-3">
+              <Calendar className="h-6 w-6 text-orange-600 flex-shrink-0 mt-1" />
+              <span className="font-semibold text-lg text-gray-800">{displayDate()}</span>
             </div>
           )}
           {(eventDetails.time_start || eventDetails.time_end) && (
-            <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5 text-orange-500" />
-              <span className="font-medium">{displayTime()}</span>
+            <div className="flex items-start space-x-3">
+              <Clock className="h-6 w-6 text-orange-600 flex-shrink-0 mt-1" />
+              <span className="font-semibold text-lg text-gray-800">{displayTime()}</span>
             </div>
           )}
           {eventDetails.location && (
-            <div className="flex items-start space-x-2">
-              <MapPin className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
-              <span>{eventDetails.location}</span>
+            <div className="flex items-start space-x-3">
+              <MapPin className="h-6 w-6 text-orange-600 flex-shrink-0 mt-1" />
+              <span className="text-lg text-gray-800">{eventDetails.location}</span>
             </div>
           )}
           {eventDetails.link && (
-            <div className="flex items-center space-x-2">
-              <Link className="h-5 w-5 text-orange-500" />
+            <div className="flex items-start space-x-3">
+              <Link className="h-6 w-6 text-orange-600 flex-shrink-0 mt-1" />
               <a
                 href={eventDetails.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
+                className="text-blue-600 hover:text-blue-800 hover:underline font-medium text-lg"
               >
                 {eventDetails.link}
               </a>
             </div>
           )}
           {eventDetails.recurrence_rule && (
-            <div className="flex items-start space-x-2">
-              <Repeat className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
-              <span className="text-sm text-gray-600">
+            <div className="flex items-start space-x-3">
+              <Repeat className="h-6 w-6 text-orange-600 flex-shrink-0 mt-1" />
+              <span className="text-base text-gray-600">
                 Recurrence: {eventDetails.recurrence_rule}
               </span>
             </div>
           )}
           {(!eventDetails.title && !eventDetails.description && !eventDetails.date_start && !eventDetails.location && !eventDetails.link && !eventDetails.recurrence_rule) && (
-            <div className="flex items-center space-x-2 text-gray-500">
-              <Info className="h-5 w-5" />
-              <span>No specific details extracted.</span>
+            <div className="flex items-center space-x-3 text-gray-500">
+              <Info className="h-6 w-6" />
+              <span className="text-lg">No specific details extracted.</span>
             </div>
           )}
         </CardContent>
