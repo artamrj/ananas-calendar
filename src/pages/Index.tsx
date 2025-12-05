@@ -18,7 +18,7 @@ const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || "";
 const Index = () => {
   const [inputText, setInputText] = useState("");
   const [isModuleNameDialogOpen, setIsModuleNameDialogOpen] = useState(false);
-  const [showJsonRaw, setShowJsonRaw] = useState(false); // State for toggling JSON display
+  const [showJsonRaw, setShowJsonRaw] = useState(false); // New state for toggling JSON display
 
   const isMobile = useIsMobile();
   const { moduleName, setModuleName } = useAppSettings();
@@ -53,26 +53,19 @@ const Index = () => {
           {extractedJson ? (
             // Extracted Event Details View
             <>
-              {showJsonRaw ? (
-                // Only show raw JSON
-                <CardContent className="flex flex-col space-y-4 p-0">
-                  <pre className="p-4 bg-gray-50 rounded-md text-sm overflow-auto max-h-[70vh] border border-gray-200">
+              <CardHeader className="p-0 mb-3 flex flex-row items-center justify-center">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800">
+                  Extracted Event Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col space-y-4 p-0">
+                <EventDetailsDisplay eventDetails={eventDetails} />
+                {showJsonRaw && (
+                  <pre className="mt-4 p-4 bg-gray-50 rounded-md text-sm overflow-auto max-h-60 border border-gray-200">
                     <code>{extractedJson}</code>
                   </pre>
-                </CardContent>
-              ) : (
-                // Show formatted event details with header
-                <>
-                  <CardHeader className="p-0 mb-3 flex flex-row items-center justify-center">
-                    <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800">
-                      Extracted Event Details
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex flex-col space-y-4 p-0">
-                    <EventDetailsDisplay eventDetails={eventDetails} />
-                  </CardContent>
-                </>
-              )}
+                )}
+              </CardContent>
             </>
           ) : (
             // Input Section View
