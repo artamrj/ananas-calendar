@@ -9,11 +9,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel, // Keep import for potential future use, but not used in this specific dropdown
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, CalendarPlus, Settings, RefreshCcw } from "lucide-react";
+import { Loader2, CalendarPlus, Settings, RefreshCcw, Check } from "lucide-react"; // Import Check icon
 import ModuleNameDialog from "@/components/ModuleNameDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { handleCalendarExport } from "@/services/calendarService";
@@ -93,9 +93,9 @@ const Index = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    {/* Removed DropdownMenuLabel and its separator */}
                     <DropdownMenuItem onClick={() => handleRegenerateClick(moduleName)}>
-                      <span className="font-semibold">Current Module:</span> {moduleName.split('/').pop()}
+                      {moduleName.split('/').pop()}
+                      <Check className="ml-auto h-4 w-4 text-green-500" /> {/* Checkmark for current module */}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     {alternativeAiModules.map((mod) => (
