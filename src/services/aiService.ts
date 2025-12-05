@@ -1,6 +1,6 @@
 import { EventDetails } from "@/lib/ics-generator";
 
-const DEFAULT_MODULE_NAME = "mistralai/mistral-7b-instruct:free";
+const FALLBACK_MODULE_NAME = "mistralai/mistral-7b-instruct:free"; // Fallback if env var is not set
 
 export interface ProcessTextResult {
   extractedJson: string;
@@ -79,13 +79,15 @@ Input Text:
 export const processTextWithAI = async (
   inputText: string,
   userLocation: string = "",
-  moduleName: string = DEFAULT_MODULE_NAME,
+  moduleName: string, // moduleName is now always passed from useAppSettings
   openRouterApiKey?: string,
   locale?: string,
   timeZone?: string
 ): Promise<ProcessTextResult> => {
   if (!inputText.trim()) throw new Error("Input text is empty.");
   if (!openRouterApiKey) throw new Error("OpenRouter API Key is missing.");
+
+  const effectiveModuleName = moduleName || import.meta.env.VITE_DEFAULT_AI_MODULE || FALLBACK_MODULE_NAME;
 
   const context = getCurrentContext(locale, timeZone);
   const prompt = buildPrompt(inputText, context);
@@ -97,7 +99,7 @@ export const processTextWithAI = async (
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: moduleName,
+      model: effectiveModuleName,
       messages: [{ role: "user", content: prompt }],
       temperature: 0.2,
       response_format: { type: "json_object" },

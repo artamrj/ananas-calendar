@@ -1,6 +1,6 @@
 import { EventDetails } from "@/lib/ics-generator";
 
-const DEFAULT_MODULE_NAME = "mistralai/mistral-7b-instruct:free";
+const FALLBACK_MODULE_NAME = "mistralai/mistral-7b-instruct:free"; // Fallback if env var is not set
 
 /**
  * Summarizes an event description to a maximum of 350 characters using AI if it exceeds the limit.
@@ -11,7 +11,7 @@ const DEFAULT_MODULE_NAME = "mistralai/mistral-7b-instruct:free";
  */
 export const summarizeEventDescription = async (
   description: string | undefined,
-  moduleName: string = DEFAULT_MODULE_NAME,
+  moduleName: string, // moduleName is now always passed from useAppSettings
   openRouterApiKey?: string,
 ): Promise<string | undefined> => {
   const MAX_SUMMARY_LENGTH = 350; // Changed from 250 to 350
@@ -24,6 +24,8 @@ export const summarizeEventDescription = async (
     console.warn("OpenRouter API Key is missing for summarization. Returning original description.");
     return description;
   }
+
+  const effectiveModuleName = moduleName || import.meta.env.VITE_DEFAULT_AI_MODULE || FALLBACK_MODULE_NAME;
 
   const prompt = `Summarize the following event description to a maximum of ${MAX_SUMMARY_LENGTH} characters. Ensure the summary is concise and captures the main points. Return ONLY the summarized text.
 
@@ -38,7 +40,7 @@ Description:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: moduleName,
+        model: effectiveModuleName,
         messages: [{ role: "user", content: prompt }],
         temperature: 0.2,
       }),
