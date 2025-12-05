@@ -14,6 +14,7 @@ export const formatRrule = (rrule: string | undefined): string | undefined => {
   const freq = parts['FREQ'];
   const byday = parts['BYDAY'];
   const count = parts['COUNT'];
+  const until = parts['UNTIL'];
 
   let humanReadable = '';
 
@@ -52,6 +53,26 @@ export const formatRrule = (rrule: string | undefined): string | undefined => {
 
   if (count) {
     humanReadable += ` for ${count} occurrences`;
+  } else if (until) {
+    try {
+      // UNTIL format is YYYYMMDD or YYYYMMDDTHHMMSSZ
+      const datePart = until.substring(0, 8);
+      const year = parseInt(datePart.substring(0, 4));
+      const month = parseInt(datePart.substring(4, 6)) - 1; // Month is 0-indexed
+      const day = parseInt(datePart.substring(6, 8));
+      const untilDate = new Date(year, month, day);
+
+      const formattedUntil = new Intl.DateTimeFormat(navigator.language, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }).format(untilDate);
+      humanReadable += ` until ${formattedUntil}`;
+    } catch (e) {
+      console.error("Error formatting UNTIL date:", until, e);
+      // Fallback to showing the raw UNTIL if parsing fails
+      humanReadable += ` until ${until}`;
+    }
   }
 
   return humanReadable;
