@@ -4,6 +4,7 @@ import React from "react";
 import { EventDetails } from "@/lib/ics-generator";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Clock, MapPin, Link, Repeat, Info } from "lucide-react";
+import { formatRrule } from "@/utils/rruleFormatter"; // Import the new utility
 
 interface EventDetailsDisplayProps {
   eventDetails: EventDetails | null;
@@ -69,9 +70,11 @@ const EventDetailsDisplay: React.FC<EventDetailsDisplayProps> = ({ eventDetails 
     return `${start} - ${end}`;
   };
 
+  const formattedRecurrence = formatRrule(eventDetails.recurrence_rule);
+
   return (
     <>
-      <CardHeader className="pb-4 border-b border-gray-100 mb-4"> {/* Removed p-0 */}
+      <CardHeader className="pb-4 border-b border-gray-100 mb-4">
         <CardTitle className="text-3xl font-extrabold text-orange-700">
           {eventDetails.title || "Untitled Event"}
         </CardTitle>
@@ -81,7 +84,7 @@ const EventDetailsDisplay: React.FC<EventDetailsDisplayProps> = ({ eventDetails 
           </CardDescription>
         )}
       </CardHeader>
-      <CardContent className="space-y-4 text-gray-800"> {/* Removed p-0 */}
+      <CardContent className="space-y-4 text-gray-800">
         {eventDetails.date_start && (
           <div className="flex items-start space-x-3">
             <Calendar className="h-6 w-6 text-orange-500 flex-shrink-0 mt-1" />
@@ -113,11 +116,11 @@ const EventDetailsDisplay: React.FC<EventDetailsDisplayProps> = ({ eventDetails 
             </a>
           </div>
         )}
-        {eventDetails.recurrence_rule && (
+        {formattedRecurrence && (
           <div className="flex items-start space-x-3">
             <Repeat className="h-6 w-6 text-orange-500 flex-shrink-0 mt-1" />
-            <span className="text-sm text-gray-500 italic">
-              Recurrence: {eventDetails.recurrence_rule}
+            <span className="inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-sm font-medium text-orange-800 ring-1 ring-inset ring-orange-200">
+              {formattedRecurrence}
             </span>
           </div>
         )}
