@@ -18,10 +18,15 @@ export const handleCalendarExport = (eventDetails: EventDetails | null) => {
     const isIOS = /ipad|iphone|ipod/.test(userAgent) && !((window as any).MSStream);
     const isAppleDevice = isMac || isIOS;
 
-    // 2. Apple Logic (Direct Import)
+    // 2. Apple Logic (Direct Import via programmatic click)
     if (isAppleDevice) {
       const dataUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
-      window.location.assign(dataUrl);
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.setAttribute("download", `${sanitizedTitle}.ics`); // Provide a filename even for data URLs
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
       toast.success("Opening in Calendar... 🍍📆");
       return;
     }
