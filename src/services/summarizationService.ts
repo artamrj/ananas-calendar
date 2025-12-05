@@ -3,7 +3,7 @@ import { EventDetails } from "@/lib/ics-generator";
 const DEFAULT_MODULE_NAME = "openai/gpt-oss-safeguard-20b";
 
 /**
- * Summarizes an event description to a maximum of 250 characters using AI if it exceeds the limit.
+ * Summarizes an event description to a maximum of 350 characters using AI if it exceeds the limit.
  * @param description The original event description.
  * @param moduleName The AI module name to use for summarization.
  * @param openRouterApiKey The OpenRouter API key.
@@ -14,7 +14,9 @@ export const summarizeEventDescription = async (
   moduleName: string = DEFAULT_MODULE_NAME,
   openRouterApiKey?: string,
 ): Promise<string | undefined> => {
-  if (!description || description.length <= 250) {
+  const MAX_SUMMARY_LENGTH = 350; // Changed from 250 to 350
+
+  if (!description || description.length <= MAX_SUMMARY_LENGTH) {
     return description;
   }
 
@@ -23,7 +25,7 @@ export const summarizeEventDescription = async (
     return description;
   }
 
-  const prompt = `Summarize the following event description to a maximum of 250 characters. Ensure the summary is concise and captures the main points. Return ONLY the summarized text.
+  const prompt = `Summarize the following event description to a maximum of ${MAX_SUMMARY_LENGTH} characters. Ensure the summary is concise and captures the main points. Return ONLY the summarized text.
 
 Description:
 "${description}"`;
@@ -56,8 +58,8 @@ Description:
       return description; // Fallback to original description if AI fails to return content
     }
 
-    // Ensure the summarized content doesn't exceed 250 characters, even if AI tries to go over.
-    return summarizedContent.length > 250 ? summarizedContent.substring(0, 250) + "..." : summarizedContent;
+    // Ensure the summarized content doesn't exceed the maximum length, even if AI tries to go over.
+    return summarizedContent.length > MAX_SUMMARY_LENGTH ? summarizedContent.substring(0, MAX_SUMMARY_LENGTH) + "..." : summarizedContent;
 
   } catch (error) {
     console.error("Error during AI summarization:", error);
