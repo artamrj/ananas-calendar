@@ -26,6 +26,7 @@ const Index = () => {
 
   const handleProcessClick = () => processText(inputText, moduleName, OPENROUTER_API_KEY);
   const handleExportClick = () => handleCalendarExport(eventDetails);
+  const handleRegenerateClick = () => processText(inputText, moduleName, OPENROUTER_API_KEY); // Re-process with current input
 
   const handleBackToInput = () => {
     setExtractedJson(null);
@@ -53,10 +54,24 @@ const Index = () => {
           {extractedJson ? (
             // Extracted Event Details View
             <>
-              <CardHeader className="p-0 mb-3 flex flex-row items-center justify-center">
+              <CardHeader className="p-0 mb-3 flex flex-row items-center justify-between relative"> {/* Added relative for absolute positioning */}
                 <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800">
                   Extracted Event Details
                 </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-0 right-0 h-8 w-8 text-orange-500 hover:bg-orange-50 hover:text-orange-600"
+                  onClick={handleRegenerateClick}
+                  disabled={isLoading}
+                  title="Regenerate with AI"
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCcw className="h-4 w-4" />
+                  )}
+                </Button>
               </CardHeader>
               <CardContent className="flex flex-col space-y-4 p-0">
                 {showJsonRaw ? (
