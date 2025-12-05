@@ -11,6 +11,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { handleCalendarExport } from "@/services/calendarService";
 import { useEventProcessor } from "@/hooks/useEventProcessor";
 import { useAppSettings } from "@/hooks/useAppSettings";
+import EventDetailsDisplay from "@/components/EventDetailsDisplay"; // Import the new component
 
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || "";
 
@@ -56,9 +57,7 @@ const Index = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col space-y-4 p-0">
-                <pre className="bg-gray-50 p-3 rounded-lg text-sm sm:text-base overflow-x-auto">
-                  <code>{extractedJson}</code>
-                </pre>
+                <EventDetailsDisplay eventDetails={eventDetails} /> {/* Using the new component */}
               </CardContent>
             </>
           ) : (
