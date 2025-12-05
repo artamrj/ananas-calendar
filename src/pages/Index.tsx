@@ -89,7 +89,7 @@ const Index = () => {
           <div className="w-full max-w-3xl flex flex-col space-y-4">
             <Button
               onClick={handleExportClick}
-              className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg text-base sm:text-lg flex items-center justify-center space-x-2"
+              className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl text-base sm:text-lg flex items-center justify-center space-x-2 shadow-md"
             >
               <CalendarPlus className="h-5 w-5" />
               <span>Add to Calendar 🗓️</span>
@@ -97,7 +97,7 @@ const Index = () => {
             <Button
               variant="outline"
               onClick={handleBackToInput}
-              className="w-full text-gray-600 hover:text-gray-800 border-gray-300 hover:border-gray-400 py-3 px-6 rounded-lg text-base sm:text-lg flex items-center justify-center space-x-2"
+              className="w-full text-gray-600 hover:text-gray-800 border-gray-300 hover:border-gray-400 py-3 px-6 rounded-xl text-base sm:text-lg flex items-center justify-center space-x-2 shadow-md"
             >
               <ArrowLeft className="h-5 w-5" />
               <span>Back to Input</span>
@@ -106,8 +106,8 @@ const Index = () => {
         ) : (
           <Button
             onClick={handleProcessClick}
-            disabled={isLoading}
-            className="w-full max-w-3xl bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg text-base sm:text-lg flex items-center justify-center space-x-2"
+            disabled={inputText.trim() === "" || isLoading} // Disable if input is empty
+            className="w-full max-w-3xl bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-xl text-base sm:text-lg flex items-center justify-center space-x-2 shadow-md"
           >
             {isLoading ? (
               <>
