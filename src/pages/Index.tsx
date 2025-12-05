@@ -18,6 +18,7 @@ const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || "";
 const Index = () => {
   const [inputText, setInputText] = useState("");
   const [isModuleNameDialogOpen, setIsModuleNameDialogOpen] = useState(false);
+  const [showJsonRaw, setShowJsonRaw] = useState(false); // New state for toggling JSON display
 
   const isMobile = useIsMobile();
   const { moduleName, setModuleName } = useAppSettings();
@@ -30,6 +31,7 @@ const Index = () => {
     setExtractedJson(null);
     setEventDetails(null);
     setInputText(""); // Clear input text when going back
+    setShowJsonRaw(false); // Reset JSON display state
   };
 
   return (
@@ -58,6 +60,11 @@ const Index = () => {
               </CardHeader>
               <CardContent className="flex flex-col space-y-4 p-0">
                 <EventDetailsDisplay eventDetails={eventDetails} />
+                {showJsonRaw && (
+                  <pre className="mt-4 p-4 bg-gray-50 rounded-md text-sm overflow-auto max-h-60 border border-gray-200">
+                    <code>{extractedJson}</code>
+                  </pre>
+                )}
               </CardContent>
             </>
           ) : (
@@ -100,6 +107,14 @@ const Index = () => {
             >
               <RefreshCcw className="h-5 w-5" />
               <span>Start New Event</span>
+            </Button>
+            {/* New button to toggle JSON display */}
+            <Button
+              variant="link"
+              onClick={() => setShowJsonRaw(!showJsonRaw)}
+              className="w-full text-gray-500 hover:text-gray-700 text-base sm:text-lg p-0 h-auto justify-center"
+            >
+              {showJsonRaw ? "Hide Raw JSON" : "Show Raw JSON"}
             </Button>
           </div>
         ) : (
