@@ -9,7 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
+  DropdownMenuLabel, // Keep import for potential future use, but not used in this specific dropdown
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -93,10 +93,9 @@ const Index = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>Choose AI Module</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
+                    {/* Removed DropdownMenuLabel and its separator */}
                     <DropdownMenuItem onClick={() => handleRegenerateClick(moduleName)}>
-                      <span className="font-semibold">Current:</span> {moduleName.split('/').pop()}
+                      <span className="font-semibold">Current Module:</span> {moduleName.split('/').pop()}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     {alternativeAiModules.map((mod) => (
