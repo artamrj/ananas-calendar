@@ -71,60 +71,60 @@ const EventDetailsDisplay: React.FC<EventDetailsDisplayProps> = ({ eventDetails 
 
   return (
     <div className="space-y-4">
-      <Card className="bg-white shadow-sm border-none">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-2xl font-bold text-gray-900">
+      <Card className="bg-white shadow-lg border border-gray-200 rounded-xl p-6">
+        <CardHeader className="pb-4 border-b border-gray-100 mb-4">
+          <CardTitle className="text-3xl font-extrabold text-orange-700">
             {eventDetails.title || "Untitled Event"}
           </CardTitle>
           {eventDetails.description && (
-            <CardDescription className="text-gray-700 mt-2">
+            <CardDescription className="text-gray-600 mt-2 text-base leading-relaxed">
               {eventDetails.description}
             </CardDescription>
           )}
         </CardHeader>
-        <CardContent className="space-y-3 text-gray-800">
+        <CardContent className="space-y-4 text-gray-800">
           {eventDetails.date_start && (
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-5 w-5 text-orange-500" />
-              <span className="font-medium">{displayDate()}</span>
+            <div className="flex items-start space-x-3">
+              <Calendar className="h-6 w-6 text-orange-500 flex-shrink-0 mt-1" />
+              <span className="font-semibold text-lg">{displayDate()}</span>
             </div>
           )}
           {(eventDetails.time_start || eventDetails.time_end) && (
-            <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5 text-orange-500" />
-              <span className="font-medium">{displayTime()}</span>
+            <div className="flex items-start space-x-3">
+              <Clock className="h-6 w-6 text-orange-500 flex-shrink-0 mt-1" />
+              <span className="font-semibold text-lg">{displayTime()}</span>
             </div>
           )}
           {eventDetails.location && (
-            <div className="flex items-start space-x-2">
-              <MapPin className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
-              <span>{eventDetails.location}</span>
+            <div className="flex items-start space-x-3">
+              <MapPin className="h-6 w-6 text-orange-500 flex-shrink-0 mt-1" />
+              <span className="text-lg">{eventDetails.location}</span>
             </div>
           )}
           {eventDetails.link && (
-            <div className="flex items-center space-x-2">
-              <Link className="h-5 w-5 text-orange-500" />
+            <div className="flex items-start space-x-3">
+              <Link className="h-6 w-6 text-orange-500 flex-shrink-0 mt-1" />
               <a
                 href={eventDetails.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
+                className="text-blue-600 hover:text-blue-800 hover:underline transition-colors text-lg"
               >
                 {eventDetails.link}
               </a>
             </div>
           )}
           {eventDetails.recurrence_rule && (
-            <div className="flex items-start space-x-2">
-              <Repeat className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
-              <span className="text-sm text-gray-600">
+            <div className="flex items-start space-x-3">
+              <Repeat className="h-6 w-6 text-orange-500 flex-shrink-0 mt-1" />
+              <span className="text-sm text-gray-500 italic">
                 Recurrence: {eventDetails.recurrence_rule}
               </span>
             </div>
           )}
           {(!eventDetails.title && !eventDetails.description && !eventDetails.date_start && !eventDetails.location && !eventDetails.link && !eventDetails.recurrence_rule) && (
-            <div className="flex items-center space-x-2 text-gray-500">
-              <Info className="h-5 w-5" />
+            <div className="flex items-center space-x-3 text-gray-500 italic">
+              <Info className="h-6 w-6" />
               <span>No specific details extracted.</span>
             </div>
           )}
