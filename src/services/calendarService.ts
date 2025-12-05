@@ -27,7 +27,7 @@ export const handleCalendarExport = (eventDetails: EventDetails | null) => {
       const dataUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
       const a = document.createElement("a");
       a.href = dataUrl;
-      // Removed the 'download' attribute to encourage direct opening by the OS
+      a.setAttribute("download", `${sanitizedTitle}.ics`); // Re-added download attribute
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
