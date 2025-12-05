@@ -12,18 +12,28 @@ export interface EventDetails {
 
 const formatDateTime = (date: string, time?: string): string => {
   const [year, month, day] = date.split('-').map(Number);
-  const d = new Date(Date.UTC(year, month - 1, day)); // Use UTC to avoid timezone issues
 
   if (time) {
     const [hours, minutes] = time.split(':').map(Number);
-    d.setUTCHours(hours, minutes, 0, 0);
-    return d.toISOString().replace(/[-:]|\.\d{3}/g, '').slice(0, -1) + 'Z'; // YYYYMMDDTHHMMSSZ
+    // Create a Date object in the local timezone
+    const d = new Date(year, month - 1, day, hours, minutes, 0, 0);
+    // Format as YYYYMMDDTHHMMSS without 'Z' for local time interpretation
+    return d.getFullYear().toString() +
+           (d.getMonth() + 1).toString().padStart(2, '0') +
+           d.getDate().toString().padStart(2, '0') +
+           'T' +
+           d.getHours().toString().padStart(2, '0') +
+           d.getMinutes().toString().padStart(2, '0') +
+           d.getSeconds().toString().padStart(2, '0');
   }
+  // For all-day events, still use UTC to ensure date consistency across timezones
+  const d = new Date(Date.UTC(year, month - 1, day));
   return d.toISOString().split('T')[0].replace(/-/g, ''); // YYYYMMDD for all-day events
 };
 
 export const generateIcs = (event: EventDetails): string => {
   const uid = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}@ananas.app`;
+  // DTSTAMP should still be UTC
   const now = new Date().toISOString().replace(/[-:]|\.\d{3}/g, '').slice(0, -1) + 'Z';
 
   let icsContent = [
@@ -46,17 +56,17 @@ export const generateIcs = (event: EventDetails): string => {
     let finalEndTime = event.time_end;
 
     if (!finalEndTime) {
-      // Calculate end time as 1 hour after start time
+      // Calculate end time as 1 hour after start time, using local time
       const [startYear, startMonth, startDay] = event.date_start.split('-').map(Number);
       const [startHours, startMinutes] = event.time_start.split(':').map(Number);
 
-      // Create a Date object in UTC for calculation
-      const startDateObj = new Date(Date.UTC(startYear, startMonth - 1, startDay, startHours, startMinutes));
-      startDateObj.setUTCHours(startDateObj.getUTCHours() + 1); // Add 1 hour
+      // Create a Date object in the local timezone for calculation
+      const startDateObj = new Date(startYear, startMonth - 1, startDay, startHours, startMinutes);
+      startDateObj.setHours(startDateObj.getHours() + 1); // Add 1 hour in local time
 
-      // Extract new date and time components
-      finalEndDate = startDateObj.toISOString().split('T')[0]; // YYYY-MM-DD
-      finalEndTime = `${String(startDateObj.getUTCHours()).padStart(2, '0')}:${String(startDateObj.getUTCMinutes()).padStart(2, '0')}`;
+      // Extract new date and time components in local time
+      finalEndDate = `${startDateObj.getFullYear()}-${String(startDateObj.getMonth() + 1).padStart(2, '0')}-${String(startDateObj.getDate()).padStart(2, '0')}`;
+      finalEndTime = `${String(startDateObj.getHours()).padStart(2, '0')}:${String(startDateObj.getMinutes()).padStart(2, '0')}`;
     }
     dtEnd = formatDateTime(finalEndDate, finalEndTime);
   } else { // If DTSTART is an all-day event
