@@ -10,98 +10,78 @@ export interface EventDetails {
   recurrence_rule?: string; // e.g., "FREQ=DAILY;COUNT=10"
 }
 
-const formatDateTime = (date: string, time?: string): string => {
+// Utility for zero-padding numbers
+const pad = (num: number) => num.toString().padStart(2, '0');
+
+// Format date/time for ICS
+const formatDateTime = (date: string, time?: string, allDay = false): string => {
   const [year, month, day] = date.split('-').map(Number);
 
   if (time) {
     const [hours, minutes] = time.split(':').map(Number);
-    // Create a Date object in the local timezone
-    const d = new Date(year, month - 1, day, hours, minutes, 0, 0);
-    // Format as YYYYMMDDTHHMMSS without 'Z' for local time interpretation
-    return d.getFullYear().toString() +
-           (d.getMonth() + 1).toString().padStart(2, '0') +
-           d.getDate().toString().padStart(2, '0') +
-           'T' +
-           d.getHours().toString().padStart(2, '0') +
-           d.getMinutes().toString().padStart(2, '0') +
-           d.getSeconds().toString().padStart(2, '0');
+    const dt = new Date(year, month - 1, day, hours, minutes);
+    return `${dt.getFullYear()}${pad(dt.getMonth() + 1)}${pad(dt.getDate())}T${pad(dt.getHours())}${pad(dt.getMinutes())}${pad(dt.getSeconds())}`;
   }
-  // For all-day events, still use UTC to ensure date consistency across timezones
-  const d = new Date(Date.UTC(year, month - 1, day));
-  return d.toISOString().split('T')[0].replace(/-/g, ''); // YYYYMMDD for all-day events
+
+  // All-day event
+  const dt = allDay ? new Date(Date.UTC(year, month - 1, day)) : new Date(year, month - 1, day);
+  return dt.toISOString().split('T')[0].replace(/-/g, '');
 };
 
+// Generate ICS string
 export const generateIcs = (event: EventDetails): string => {
   const uid = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}@ananas.app`;
-  // DTSTAMP should still be UTC
-  const now = new Date().toISOString().replace(/[-:]|\.\d{3}/g, '').slice(0, -1) + 'Z';
+  const dtStamp = new Date().toISOString().replace(/[-:]|\.\d{3}/g, '').slice(0, -1) + 'Z';
 
-  let icsContent = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Ananas App//NONSGML v1.0//EN',
-    `UID:${uid}`,
-    'BEGIN:VEVENT',
-    `DTSTAMP:${now}`,
-  ];
+  const isTimed = Boolean(event.time_start);
+  const dtStart = formatDateTime(event.date_start, event.time_start, !isTimed);
 
-  const dtStart = formatDateTime(event.date_start, event.time_start);
-  icsContent.push(`DTSTART${event.time_start ? '' : ';VALUE=DATE'}:${dtStart}`);
-
+  // Calculate DTEND
   let dtEnd: string;
-  let dtEndProperty = 'DTEND';
+  let dtEndProp = `DTEND${isTimed ? '' : ';VALUE=DATE'}`;
 
-  if (event.time_start) { // If DTSTART has a time, DTEND must also have a time
-    let finalEndDate = event.date_end || event.date_start;
-    let finalEndTime = event.time_end;
+  if (isTimed) {
+    let endDate = event.date_end || event.date_start;
+    let endTime = event.time_end;
 
-    if (!finalEndTime) {
-      // Calculate end time as 1 hour after start time, using local time
-      const [startYear, startMonth, startDay] = event.date_start.split('-').map(Number);
-      const [startHours, startMinutes] = event.time_start.split(':').map(Number);
-
-      // Create a Date object in the local timezone for calculation
-      const startDateObj = new Date(startYear, startMonth - 1, startDay, startHours, startMinutes);
-      startDateObj.setHours(startDateObj.getHours() + 1); // Add 1 hour in local time
-
-      // Extract new date and time components in local time
-      finalEndDate = `${startDateObj.getFullYear()}-${String(startDateObj.getMonth() + 1).padStart(2, '0')}-${String(startDateObj.getDate()).padStart(2, '0')}`;
-      finalEndTime = `${String(startDateObj.getHours()).padStart(2, '0')}:${String(startDateObj.getMinutes()).padStart(2, '0')}`;
+    if (!endTime) {
+      const [y, m, d] = event.date_start.split('-').map(Number);
+      const [h, min] = event.time_start!.split(':').map(Number);
+      const endDt = new Date(y, m - 1, d, h, min);
+      endDt.setHours(endDt.getHours() + 1); // default 1-hour duration
+      endDate = `${endDt.getFullYear()}-${pad(endDt.getMonth() + 1)}-${pad(endDt.getDate())}`;
+      endTime = `${pad(endDt.getHours())}:${pad(endDt.getMinutes())}`;
     }
-    dtEnd = formatDateTime(finalEndDate, finalEndTime);
-  } else { // If DTSTART is an all-day event
-    dtEndProperty += ';VALUE=DATE';
+
+    dtEnd = formatDateTime(endDate, endTime);
+  } else {
     if (event.date_end) {
       dtEnd = formatDateTime(event.date_end);
     } else {
-      // For all-day events without an explicit end date, ICS requires DTEND to be the next day
-      const [year, month, day] = event.date_start.split('-').map(Number);
-      const nextDay = new Date(Date.UTC(year, month - 1, day + 1));
+      const [y, m, d] = event.date_start.split('-').map(Number);
+      const nextDay = new Date(Date.UTC(y, m - 1, d + 1));
       dtEnd = nextDay.toISOString().split('T')[0].replace(/-/g, '');
     }
   }
-  icsContent.push(`${dtEndProperty}:${dtEnd}`);
 
-  // Ensure SUMMARY is always present, with a fallback title
-  icsContent.push(`SUMMARY:${event.title || 'Untitled Event'}`);
-  
-  if (event.description) {
-    icsContent.push(`DESCRIPTION:${event.description}`);
-  }
-  if (event.location) {
-    icsContent.push(`LOCATION:${event.location}`);
-  }
-  if (event.link) {
-    icsContent.push(`URL:${event.link}`);
-  }
-  if (event.recurrence_rule) {
-    icsContent.push(`RRULE:${event.recurrence_rule}`);
-  }
+  const icsLines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Ananas App//NONSGML v1.0//EN',
+    'BEGIN:VEVENT',
+    `UID:${uid}`,
+    `DTSTAMP:${dtStamp}`,
+    `DTSTART${isTimed ? '' : ';VALUE=DATE'}:${dtStart}`,
+    `${dtEndProp}:${dtEnd}`,
+    `SUMMARY:${event.title || 'Untitled Event'}`,
+  ];
 
-  icsContent.push(
-    'END:VEVENT',
-    'END:VCALENDAR'
-  );
+  if (event.description) icsLines.push(`DESCRIPTION:${event.description}`);
+  if (event.location) icsLines.push(`LOCATION:${event.location}`);
+  if (event.link) icsLines.push(`URL:${event.link}`);
+  if (event.recurrence_rule) icsLines.push(`RRULE:${event.recurrence_rule}`);
 
-  return icsContent.join('\n');
+  icsLines.push('END:VEVENT', 'END:VCALENDAR');
+
+  return icsLines.join('\n');
 };
