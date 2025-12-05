@@ -22,15 +22,14 @@ const Index = () => {
 
   const isMobile = useIsMobile();
   const { moduleName, setModuleName } = useAppSettings();
-  const { isLoading, extractedJson, eventDetails, processText, setExtractedJson, setEventDetails } = useEventProcessor();
+  const { isLoading, extractedJson, eventDetails, processText, clearEventDetails } = useEventProcessor(); // Destructure clearEventDetails
 
   const handleProcessClick = () => processText(inputText, moduleName, OPENROUTER_API_KEY);
   const handleExportClick = () => handleCalendarExport(eventDetails);
   const handleRegenerateClick = () => processText(inputText, moduleName, OPENROUTER_API_KEY); // Re-process with current input
 
   const handleBackToInput = () => {
-    setExtractedJson(null);
-    setEventDetails(null);
+    clearEventDetails(); // Use the new clear function from the hook
     setInputText(""); // Clear input text when going back
     setShowJsonRaw(false); // Reset JSON display state
   };
