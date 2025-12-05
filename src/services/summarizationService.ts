@@ -1,6 +1,6 @@
 import { EventDetails } from "@/lib/ics-generator";
 
-const DEFAULT_MODULE_NAME = "openai/gpt-oss-safeguard-20b";
+const DEFAULT_MODULE_NAME = "mistralai/mistral-7b-instruct:free";
 
 /**
  * Summarizes an event description to a maximum of 350 characters using AI if it exceeds the limit.

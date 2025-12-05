@@ -1,63 +1,61 @@
 import { EventDetails } from "@/lib/ics-generator";
 
-const DEFAULT_MODULE_NAME = "openai/gpt-oss-safeguard-20b";
+const DEFAULT_MODULE_NAME = "mistralai/mistral-7b-instruct:free";
 
 export interface ProcessTextResult {
   extractedJson: string;
   eventDetails: EventDetails;
 }
 
-/** Format current date/time using user's locale and timezone */
+/** Format current date/time in an unambiguous way for AI */
 const getCurrentContext = (locale?: string, timeZone?: string): string => {
   const userLocale =
     locale || (typeof navigator !== "undefined" ? navigator.language : "en-US");
+
   const userTimeZone =
     timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+
   const now = new Date();
 
-  const todayDate = now.toLocaleDateString(userLocale, {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    timeZone: userTimeZone,
-  });
+  // Use ISO-like date and month name
+  const isoDate = now.toISOString().slice(0, 10); // YYYY-MM-DD
+  const dayOfMonth = now.getUTCDate().toString().padStart(2, "0");
+  const monthNumber = (now.getUTCMonth() + 1).toString().padStart(2, "0");
+  const monthName = now.toLocaleString("en-US", { month: "long", timeZone: userTimeZone });
+  const year = now.getUTCFullYear();
 
-  const dayOfWeek = now.toLocaleDateString(userLocale, {
-    weekday: "long",
-    timeZone: userTimeZone,
-  });
+  const dayOfWeek = now.toLocaleString("en-US", { weekday: "long", timeZone: userTimeZone });
 
-  const currentTime = now.toLocaleTimeString(userLocale, {
+  const currentTime = now.toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
     timeZone: userTimeZone,
   });
 
-  return `Current Date: ${todayDate}, Day of Week: ${dayOfWeek}, Current Time: ${currentTime}, Time Zone: ${userTimeZone}.`;
+  return `Current Date: ${year}-${monthNumber}-${dayOfMonth} (Year ${year}, Month ${monthName}, Day ${dayOfMonth}), Day of Week: ${dayOfWeek}, Current Time: ${currentTime}, Time Zone: ${userTimeZone}.`;
 };
 
 /** Build AI prompt */
-const buildPrompt = (
-  inputText: string,
-  context: string,
-  location?: string
-): string => `
-You are an AI assistant designed to extract structured event information from unstructured text with high precision and consistency.
+const buildPrompt = (inputText: string, context: string): string => `
+You are an expert AI assistant that extracts structured event information from unstructured text with perfect consistency.
 
-Your tasks:
-1. Identify the language of the input text and produce the final JSON in that same language.
-2. Interpret all provided context and use it to enhance the accuracy of extracted fields.
-3. If a location parameter is provided, treat it as authoritative for the event unless the input text clearly specifies a different one.
-4. Extract all event-related details and populate the JSON fields exactly as defined. When information is missing, return an empty string for that field.
-5. The "title" must be a short, specific summary that captures the essence of the event.
-6. Normalize dates to YYYY-MM-DD format and times to HH:MM (24-hour) format.
-7. The recurrence rule must follow the iCalendar RRULE specification.
-8. If the text describes a recurring event but does not include a start date, determine the correct start date using the Current Date from the provided context:
-   - If the text references a weekday relative to the current day, compute the upcoming occurrence of that weekday.
-   - If no weekday or temporal reference is provided, default to the current date itself.
+Instructions:
+1. Detect the language of the input text and return the JSON in the same language.
+2. Use the provided "Current Date" context when interpreting dates. The date is provided in unambiguous format: Year, Month Name, Day number, and YYYY-MM-DD.
+3. All extracted event information must be accurate, consistent, and in proper format.
+4. Populate all JSON fields. If a field is not mentioned, leave it as an empty string.
+5. The "title" must be concise, specific, and summarize the event.
+6. Dates must be in YYYY-MM-DD format. Times must be in HH:MM (24-hour) format.
+7. If an event is recurring:
+   - Determine the next valid occurrence relative to the current date.
+   - Use RRULE format with FREQ, BYDAY, and UNTIL if a duration is specified (do not rely on COUNT unless duration is explicitly given in number of occurrences).
+   - The start date must never be earlier than the current date.
+   - If no specific weekday is mentioned, use the current date as the start date.
+8. Ensure the "date_end" matches the duration of the event if given. If duration is missing, set it equal to "date_start".
+9. Ensure time consistency: "time_end" can be empty if not specified.
+10. Return ONLY the JSON object with this exact structure:
 
-Required JSON output (return this object and nothing else):
 {
   "title": "string",
   "description": "string",
@@ -73,8 +71,6 @@ Required JSON output (return this object and nothing else):
 Context:
 ${context}
 
-${location ? `Event Location Override: ${location}` : ""}
-
 Input Text:
 "${inputText}"
 `;
@@ -82,34 +78,31 @@ Input Text:
 /** Main service to process text with AI */
 export const processTextWithAI = async (
   inputText: string,
-  userLocation: string = "", // Made optional with a default empty string
+  userLocation: string = "",
   moduleName: string = DEFAULT_MODULE_NAME,
   openRouterApiKey?: string,
   locale?: string,
   timeZone?: string
 ): Promise<ProcessTextResult> => {
-  if (!inputText.trim()) throw new Error("Input text is empty. 📝");
-  if (!openRouterApiKey) throw new Error("OpenRouter API Key is missing. 🔑");
+  if (!inputText.trim()) throw new Error("Input text is empty.");
+  if (!openRouterApiKey) throw new Error("OpenRouter API Key is missing.");
 
   const context = getCurrentContext(locale, timeZone);
-  const prompt = buildPrompt(inputText, context, userLocation);
+  const prompt = buildPrompt(inputText, context);
 
-  const response = await fetch(
-    "https://openrouter.ai/api/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${openRouterApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: moduleName,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.2,
-        response_format: { type: "json_object" },
-      }),
-    }
-  );
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${openRouterApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: moduleName,
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.2,
+      response_format: { type: "json_object" },
+    }),
+  });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
@@ -119,7 +112,7 @@ export const processTextWithAI = async (
   const data = await response.json();
   const content = data?.choices?.[0]?.message?.content;
 
-  if (!content) throw new Error("Could not extract event details. 🧐");
+  if (!content) throw new Error("Could not extract event details.");
 
   const parsedJson: EventDetails = JSON.parse(content);
 
