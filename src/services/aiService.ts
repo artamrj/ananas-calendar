@@ -45,7 +45,7 @@ Extract the following event details into a JSON object. If a field is missing, l
 The 'title' field should be a concise and specific summary of the event.
 Dates should be in YYYY-MM-DD format. Times should be in HH:MM (24-hour) format.
 Recurrence rule should be a valid iCalendar RRULE string.
-IMPORTANT: If the input describes a recurring event but does not specify a start date, use the Current Date from the context as the 'date_start'.
+IMPORTANT: If the input describes a recurring event but does not specify a start date, use the Current Date(Optimize based on user asks) from the context as the 'date_start'.
 
 JSON Structure:
 {
