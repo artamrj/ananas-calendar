@@ -39,9 +39,3 @@ export interface LocalCalendarRecord {
   lastExportedAt?: string;
   exportCount: number;
 }
-
-export interface LocalCalendarUser {
-  id: string;
-  name: string;
-  createdAt: string;
-}
