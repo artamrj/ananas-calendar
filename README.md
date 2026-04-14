@@ -99,6 +99,7 @@ Simple in the UI. Nicely strict under the hood.
 .
 ├── api/                    # Server-side proxy for Mistral
 ├── public/                 # Static assets
+├── tests/                  # Vitest test suites and shared setup
 ├── src/
 │   ├── ai-prompts/         # AI prompt templates
 │   ├── components/         # UI and feature components
@@ -216,6 +217,20 @@ The Vite dev server runs on:
 ```text
 http://localhost:8080
 ```
+
+### Run Tests
+
+```bash
+pnpm test
+```
+
+This runs the Vitest suite covering:
+
+- validation and sanitization helpers
+- event formatting and `.ics` generation
+- browser export behavior and app hooks
+- AI client and AI service behavior
+- the `/api/mistral` serverless proxy handler
 
 ### Build For Production
 
