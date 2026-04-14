@@ -28,3 +28,20 @@ export interface ProcessTextResult {
 }
 
 export type ProcessingStatus = "idle" | "processing" | "success" | "error";
+
+export interface LocalCalendarRecord {
+  id: string;
+  sourceText: string;
+  eventDetails: EventDetails;
+  extractedJson: string;
+  createdAt: string;
+  updatedAt: string;
+  lastExportedAt?: string;
+  exportCount: number;
+}
+
+export interface LocalCalendarUser {
+  id: string;
+  name: string;
+  createdAt: string;
+}
