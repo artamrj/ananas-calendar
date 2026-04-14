@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, CalendarPlus, Settings, RefreshCcw, Check } from "lucide-react"; // Import Check icon
+import { Loader2, CalendarPlus, Settings, RefreshCcw, Check } from "lucide-react";
 import ModuleNameDialog from "@/components/ModuleNameDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { handleCalendarExport } from "@/services/calendarService";
@@ -21,12 +21,12 @@ import { useEventProcessor } from "@/hooks/useEventProcessor";
 import { useAppSettings } from "@/hooks/useAppSettings";
 import EventDetailsDisplay from "@/components/EventDetailsDisplay";
 
-const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || "";
+const MISTRAL_API_KEY = import.meta.env.VITE_MISTRAL_API_KEY || "";
 
-// Define alternative AI modules
+// Define alternative Mistral AI modules
 const alternativeAiModules = [
-  "kwaipilot/kat-coder-pro:free",
-  "alibaba/tongyi-deepresearch-30b-a3b:free"
+  "mistral-small-latest",
+  "open-mistral-7b"
 ];
 
 const Index = () => {
@@ -38,13 +38,12 @@ const Index = () => {
   const { moduleName, setModuleName } = useAppSettings();
   const { isLoading, extractedJson, eventDetails, processText, clearEventDetails } = useEventProcessor();
 
-  // Modified handleRegenerateClick to accept an optional module override
   const handleRegenerateClick = (moduleOverride?: string) => {
-    const moduleToUse = moduleOverride || moduleName; // Use override if provided, otherwise use the current moduleName
-    processText(inputText, moduleToUse, OPENROUTER_API_KEY);
+    const moduleToUse = moduleOverride || moduleName;
+    processText(inputText, moduleToUse, MISTRAL_API_KEY);
   };
 
-  const handleProcessClick = () => processText(inputText, moduleName, OPENROUTER_API_KEY);
+  const handleProcessClick = () => processText(inputText, moduleName, MISTRAL_API_KEY);
   const handleExportClick = () => handleCalendarExport(eventDetails);
 
   const handleBackToInput = () => {
@@ -56,7 +55,6 @@ const Index = () => {
   return (
     <div className="min-h-screen w-screen flex flex-col bg-gradient-to-br from-orange-50 to-yellow-100 p-4 sm:p-6 lg:p-8">
       
-      {/* Header */}
       <header className="flex flex-col items-center justify-center text-center mb-6 flex-shrink-0">
         <h1 className="text-4xl sm:text-5xl font-extrabold text-orange-600 drop-shadow-lg mb-2">
           Ananas 🍍
@@ -66,11 +64,9 @@ const Index = () => {
         </p>
       </header>
 
-      {/* Main Content - Single Dynamic Card and Buttons */}
       <main className="flex-1 flex flex-col items-center overflow-hidden space-y-6 sm:space-y-8">
         <Card className="w-full max-w-3xl flex flex-col bg-white shadow-xl border-none rounded-xl p-4 sm:p-6">
           {extractedJson ? (
-            // Extracted Event Details View
             <>
               <CardHeader className="p-0 mb-3 flex flex-row items-center justify-between relative">
                 <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800">
@@ -94,13 +90,13 @@ const Index = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuItem onClick={() => handleRegenerateClick(moduleName)}>
-                      {moduleName.split('/').pop()}
-                      <Check className="ml-auto h-4 w-4 text-green-500" /> {/* Checkmark for current module */}
+                      {moduleName}
+                      <Check className="ml-auto h-4 w-4 text-green-500" />
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     {alternativeAiModules.map((mod) => (
                       <DropdownMenuItem key={mod} onClick={() => handleRegenerateClick(mod)}>
-                        {mod.split('/').pop()}
+                        {mod}
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>
@@ -117,7 +113,6 @@ const Index = () => {
               </CardContent>
             </>
           ) : (
-            // Input Section View
             <>
               <CardHeader className="p-0 mb-3">
                 <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800">
@@ -139,7 +134,6 @@ const Index = () => {
           )}
         </Card>
 
-        {/* Buttons outside the card */}
         {extractedJson ? (
           <div className="w-full max-w-3xl flex flex-col space-y-4">
             <Button
@@ -157,7 +151,6 @@ const Index = () => {
               <RefreshCcw className="h-5 w-5" />
               <span>Start New Event</span>
             </Button>
-            {/* New button to toggle JSON display */}
             <Button
               variant="link"
               onClick={() => setShowJsonRaw(!showJsonRaw)}
@@ -186,7 +179,6 @@ const Index = () => {
         )}
       </main>
 
-      {/* Settings Button & Dialog */}
       {!isMobile && (
         <>
           <Button

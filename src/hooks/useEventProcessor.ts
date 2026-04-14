@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { processTextForEventExtraction, summarizeEventDescription } from "@/services/aiService"; // Updated import
+import { processTextForEventExtraction, summarizeEventDescription } from "@/services/aiService";
 import { EventDetails } from "@/lib/ics-generator";
 
 interface UseEventProcessorReturn {
@@ -10,7 +10,7 @@ interface UseEventProcessorReturn {
   processText: (text: string, moduleName: string, apiKey: string) => Promise<void>;
   setExtractedJson: React.Dispatch<React.SetStateAction<string | null>>;
   setEventDetails: React.Dispatch<React.SetStateAction<EventDetails | null>>;
-  clearEventDetails: () => void; // New function to clear event details
+  clearEventDetails: () => void;
 }
 
 export const useEventProcessor = (): UseEventProcessorReturn => {
@@ -18,7 +18,6 @@ export const useEventProcessor = (): UseEventProcessorReturn => {
   const [extractedJson, setExtractedJson] = useState<string | null>(null);
   const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
 
-  // New function to explicitly clear the event details state
   const clearEventDetails = useCallback(() => {
     setExtractedJson(null);
     setEventDetails(null);
@@ -26,12 +25,8 @@ export const useEventProcessor = (): UseEventProcessorReturn => {
 
   const processText = useCallback(async (text: string, moduleName: string, apiKey: string) => {
     setIsLoading(true);
-    // IMPORTANT: Do NOT clear extractedJson and eventDetails here.
-    // They should only be cleared when starting a *new* event from scratch
-    // via clearEventDetails. For regeneration, we want to keep the old data
-    // visible until new data arrives.
 
-    const apiCallPromise = processTextForEventExtraction(text, moduleName, apiKey) // Renamed function call
+    const apiCallPromise = processTextForEventExtraction(text, moduleName, apiKey)
       .then(async (result) => {
         let finalEventDetails = result.eventDetails;
 

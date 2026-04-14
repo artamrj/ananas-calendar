@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-const FALLBACK_MODULE_NAME = "openai/gpt-oss-safeguard-20b"; // Fallback if env var is not set
+const FALLBACK_MODULE_NAME = "mistral-large-latest";
 
 export const useAppSettings = () => {
   const [moduleName, setModuleName] = useState<string>(() => {
