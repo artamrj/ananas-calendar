@@ -20,7 +20,7 @@ const sanitizeFilename = (value: string): string =>
 export const handleCalendarExport = (eventDetails: EventDetails | null) => {
   if (!eventDetails || !eventDetails.date_start) {
     showError("No valid event details are available to export.");
-    return;
+    return false;
   }
 
   try {
@@ -43,7 +43,7 @@ export const handleCalendarExport = (eventDetails: EventDetails | null) => {
       a.click();
       document.body.removeChild(a);
       toast.success("Calendar file prepared. If Calendar does not open automatically, open the downloaded file manually.");
-      return;
+      return true;
     }
 
     // 3. Windows/Android Logic (Download)
@@ -58,7 +58,9 @@ export const handleCalendarExport = (eventDetails: EventDetails | null) => {
     URL.revokeObjectURL(url);
 
     toast.success("Calendar file downloaded.");
+    return true;
   } catch (error: unknown) {
     showError(`Failed to export calendar file: ${getErrorMessage(error)}`);
+    return false;
   }
 };

@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { processTextForEventExtraction, summarizeEventDescription } from "@/services/aiService";
-import type { EventDetails, ProcessingStatus } from "@/types/event";
+import type { EventDetails, ProcessTextResult, ProcessingStatus } from "@/types/event";
 
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : "Unknown error";
@@ -12,8 +12,9 @@ interface UseEventProcessorReturn {
   errorMessage: string | null;
   extractedJson: string | null;
   eventDetails: EventDetails | null;
-  processText: (text: string, moduleName: string) => Promise<void>;
+  processText: (text: string, moduleName: string) => Promise<ProcessTextResult>;
   clearEventDetails: () => void;
+  loadStoredEvent: (payload: { eventDetails: EventDetails; extractedJson: string }) => void;
 }
 
 export const useEventProcessor = (): UseEventProcessorReturn => {
@@ -28,6 +29,16 @@ export const useEventProcessor = (): UseEventProcessorReturn => {
     setExtractedJson(null);
     setEventDetails(null);
   }, []);
+
+  const loadStoredEvent = useCallback(
+    ({ eventDetails: storedEventDetails, extractedJson: storedExtractedJson }: { eventDetails: EventDetails; extractedJson: string }) => {
+      setStatus("success");
+      setErrorMessage(null);
+      setExtractedJson(storedExtractedJson);
+      setEventDetails(storedEventDetails);
+    },
+    []
+  );
 
   const processText = useCallback(async (text: string, moduleName: string) => {
     setStatus("processing");
@@ -50,15 +61,20 @@ export const useEventProcessor = (): UseEventProcessorReturn => {
           };
         }
 
-        setExtractedJson(JSON.stringify(finalEventDetails, null, 2));
+        const nextExtractedJson = JSON.stringify(finalEventDetails, null, 2);
+
+        setExtractedJson(nextExtractedJson);
         setEventDetails(finalEventDetails);
         setStatus("success");
-        return "Event details extracted successfully.";
+        return {
+          extractedJson: nextExtractedJson,
+          eventDetails: finalEventDetails,
+        };
       });
 
     toast.promise(apiCallPromise, {
       loading: "Extracting event details...",
-      success: (message) => message,
+      success: () => "Event details extracted successfully.",
       error: (err: unknown) => {
         const message = getErrorMessage(err);
         setStatus("error");
@@ -66,6 +82,8 @@ export const useEventProcessor = (): UseEventProcessorReturn => {
         return `Failed to process text: ${message}`;
       },
     });
+
+    return apiCallPromise;
   }, []);
 
   return {
@@ -76,5 +94,6 @@ export const useEventProcessor = (): UseEventProcessorReturn => {
     eventDetails,
     processText,
     clearEventDetails,
+    loadStoredEvent,
   };
 };
