@@ -1,5 +1,9 @@
 # 🍍 Ananas Calendar
 
+<p align="center">
+  <img src="./ananas.gif" alt="Ananas Calendar preview showing text-to-calendar extraction flow" width="100%" />
+</p>
+
 Turn messy text into clean calendar events in seconds.
 
 **Ananas Calendar** is an AI-powered web app that reads plain-language event text, extracts the important details, and exports them as ready-to-import `.ics` calendar files.
