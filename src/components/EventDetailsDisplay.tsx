@@ -45,9 +45,9 @@ const EventDetailsDisplay = ({ eventDetails }: EventDetailsDisplayProps) => {
             <div className="bg-white p-2 rounded-xl shadow-sm">
               <Calendar className="h-6 w-6 text-orange-500" />
             </div>
-            <div className="flex flex-col">
+            <div className="flex min-w-0 flex-col">
               <span className="text-xs font-bold text-orange-400 uppercase tracking-wider">Date</span>
-              <span className="text-lg font-bold text-gray-900">{dateLabel}</span>
+              <span className="text-lg font-bold text-gray-900 break-words">{dateLabel}</span>
             </div>
           </div>
         )}
@@ -57,9 +57,9 @@ const EventDetailsDisplay = ({ eventDetails }: EventDetailsDisplayProps) => {
             <div className="bg-white p-2 rounded-xl shadow-sm">
               <Clock className="h-6 w-6 text-blue-500" />
             </div>
-            <div className="flex flex-col">
+            <div className="flex min-w-0 flex-col">
               <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Time</span>
-              <span className="text-lg font-bold text-gray-900">{timeLabel}</span>
+              <span className="text-lg font-bold text-gray-900 break-words">{timeLabel}</span>
             </div>
           </div>
         )}
@@ -69,9 +69,9 @@ const EventDetailsDisplay = ({ eventDetails }: EventDetailsDisplayProps) => {
             <div className="bg-white p-2 rounded-xl shadow-sm">
               <MapPin className="h-6 w-6 text-green-500" />
             </div>
-            <div className="flex flex-col">
+            <div className="flex min-w-0 flex-col">
               <span className="text-xs font-bold text-green-400 uppercase tracking-wider">Location</span>
-              <span className="text-lg font-bold text-gray-900">{eventDetails.location}</span>
+              <span className="text-lg font-bold text-gray-900 break-words">{eventDetails.location}</span>
             </div>
           </div>
         )}
@@ -81,7 +81,7 @@ const EventDetailsDisplay = ({ eventDetails }: EventDetailsDisplayProps) => {
             <div className="bg-white p-2 rounded-xl shadow-sm">
               <Link className="h-6 w-6 text-purple-500" />
             </div>
-            <div className="flex flex-col overflow-hidden">
+            <div className="flex min-w-0 flex-col overflow-hidden">
               <span className="text-xs font-bold text-purple-400 uppercase tracking-wider">Link</span>
               <a
                 href={eventDetails.link}
@@ -100,9 +100,9 @@ const EventDetailsDisplay = ({ eventDetails }: EventDetailsDisplayProps) => {
             <div className="bg-white p-2 rounded-xl shadow-sm">
               <Repeat className="h-6 w-6 text-yellow-600" />
             </div>
-            <div className="flex flex-col">
+            <div className="flex min-w-0 flex-col">
               <span className="text-xs font-bold text-yellow-600 uppercase tracking-wider">Recurrence</span>
-              <span className="text-lg font-bold text-gray-900">{formattedRecurrence}</span>
+              <span className="text-lg font-bold text-gray-900 break-words">{formattedRecurrence}</span>
             </div>
           </div>
         )}

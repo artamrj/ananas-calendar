@@ -73,7 +73,14 @@
   body {
     @apply bg-background text-foreground;
     min-height: 100vh;
+    min-height: 100dvh;
     font-synthesis-weight: none;
     text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  html,
+  #root {
+    min-height: 100%;
   }
 }
