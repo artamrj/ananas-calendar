@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,12 +19,12 @@ interface ModuleNameDialogProps {
   onSave: (newModuleName: string) => void;
 }
 
-const ModuleNameDialog: React.FC<ModuleNameDialogProps> = ({
+const ModuleNameDialog = ({
   isOpen,
   onClose,
   currentModuleName,
   onSave,
-}) => {
+}: ModuleNameDialogProps) => {
   const [inputModuleName, setInputModuleName] = useState(currentModuleName);
 
   useEffect(() => {
@@ -38,8 +36,8 @@ const ModuleNameDialog: React.FC<ModuleNameDialogProps> = ({
       showError("Module name cannot be empty.");
       return;
     }
-    onSave(inputModuleName);
-    showSuccess("Mistral AI Module Name updated!");
+    onSave(inputModuleName.trim());
+    showSuccess("AI model updated.");
     onClose();
   };
 
@@ -49,7 +47,7 @@ const ModuleNameDialog: React.FC<ModuleNameDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Change Mistral AI Module</DialogTitle>
           <DialogDescription>
-            Enter the desired Mistral AI model name (e.g., mistral-large-latest). This will be saved locally in your browser.
+            Enter the model name to use for extraction. This setting is stored only in this browser.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">

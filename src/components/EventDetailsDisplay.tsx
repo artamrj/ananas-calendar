@@ -1,15 +1,16 @@
-"use client";
-
-import React from "react";
-import { EventDetails } from "@/lib/ics-generator";
+import type { EventDetails } from "@/types/event";
 import { Calendar, Clock, MapPin, Link, Repeat, AlignLeft } from "lucide-react";
+import {
+  getEventDateRangeLabel,
+  getEventTimeRangeLabel,
+} from "@/lib/event-formatters";
 import { formatRrule } from "@/utils/rruleFormatter";
 
 interface EventDetailsDisplayProps {
   eventDetails: EventDetails | null;
 }
 
-const EventDetailsDisplay: React.FC<EventDetailsDisplayProps> = ({ eventDetails }) => {
+const EventDetailsDisplay = ({ eventDetails }: EventDetailsDisplayProps) => {
   if (!eventDetails) {
     return (
       <div className="text-center text-gray-400 py-12 font-medium">
@@ -18,53 +19,8 @@ const EventDetailsDisplay: React.FC<EventDetailsDisplayProps> = ({ eventDetails 
     );
   }
 
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return "";
-    try {
-      const [year, month, day] = dateString.split('-').map(Number);
-      const date = new Date(year, month - 1, day);
-      return new Intl.DateTimeFormat(navigator.language, {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric'
-      }).format(date);
-    } catch (e) {
-      return dateString;
-    }
-  };
-
-  const formatTime = (timeString: string | undefined) => {
-    if (!timeString) return "";
-    try {
-      const [hours, minutes] = timeString.split(':').map(Number);
-      const date = new Date();
-      date.setHours(hours, minutes);
-      return new Intl.DateTimeFormat(navigator.language, {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      }).format(date);
-    } catch (e) {
-      return timeString;
-    }
-  };
-
-  const displayDate = () => {
-    const start = formatDate(eventDetails.date_start);
-    const end = formatDate(eventDetails.date_end);
-    if (start === end || !end) return start;
-    return `${start} — ${end}`;
-  };
-
-  const displayTime = () => {
-    const start = formatTime(eventDetails.time_start);
-    const end = formatTime(eventDetails.time_end);
-    if (!start) return null;
-    if (start === end || !end) return start;
-    return `${start} to ${end}`;
-  };
-
+  const dateLabel = getEventDateRangeLabel(eventDetails);
+  const timeLabel = getEventTimeRangeLabel(eventDetails);
   const formattedRecurrence = formatRrule(eventDetails.recurrence_rule);
 
   return (
@@ -91,19 +47,19 @@ const EventDetailsDisplay: React.FC<EventDetailsDisplayProps> = ({ eventDetails 
             </div>
             <div className="flex flex-col">
               <span className="text-xs font-bold text-orange-400 uppercase tracking-wider">Date</span>
-              <span className="text-lg font-bold text-gray-900">{displayDate()}</span>
+              <span className="text-lg font-bold text-gray-900">{dateLabel}</span>
             </div>
           </div>
         )}
 
-        {displayTime() && (
+        {timeLabel && (
           <div className="flex items-center space-x-4 p-4 rounded-2xl bg-blue-50/50 border border-blue-100/50">
             <div className="bg-white p-2 rounded-xl shadow-sm">
               <Clock className="h-6 w-6 text-blue-500" />
             </div>
             <div className="flex flex-col">
               <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Time</span>
-              <span className="text-lg font-bold text-gray-900">{displayTime()}</span>
+              <span className="text-lg font-bold text-gray-900">{timeLabel}</span>
             </div>
           </div>
         )}

@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,14 +14,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Loader2, CalendarPlus, Settings, RefreshCcw, Check, AlertCircle, Sparkles } from "lucide-react";
 import ModuleNameDialog from "@/components/ModuleNameDialog";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { handleCalendarExport } from "@/services/calendarService";
 import { useEventProcessor } from "@/hooks/useEventProcessor";
 import { useAppSettings } from "@/hooks/useAppSettings";
 import EventDetailsDisplay from "@/components/EventDetailsDisplay";
 import { showError } from "@/utils/toast";
-
-const MISTRAL_API_KEY = import.meta.env.VITE_MISTRAL_API_KEY || "";
+import { getAiConfigurationStatus } from "@/services/aiClient";
 
 const alternativeAiModules = [
   "mistral-small-2409",
@@ -33,32 +29,32 @@ const alternativeAiModules = [
   "pixtral-12b-latest"
 ];
 
+const aiConfig = getAiConfigurationStatus();
+
 const Index = () => {
   const [inputText, setInputText] = useState("");
   const [isModuleNameDialogOpen, setIsModuleNameDialogOpen] = useState(false);
   const [showJsonRaw, setShowJsonRaw] = useState(false);
 
-  const isMobile = useIsMobile();
   const { moduleName, setModuleName } = useAppSettings();
-  const { isLoading, extractedJson, eventDetails, processText, clearEventDetails } = useEventProcessor();
-
-  useEffect(() => {
-    if (!MISTRAL_API_KEY) {
-      showError("Mistral API Key is missing! Please set VITE_MISTRAL_API_KEY in your environment.");
-    }
-  }, []);
+  const { isLoading, status, errorMessage, extractedJson, eventDetails, processText, clearEventDetails } =
+    useEventProcessor();
+  const trimmedInput = inputText.trim();
+  const canSubmit = trimmedInput.length > 0 && !isLoading;
+  const inputCharacterCount = useMemo(() => trimmedInput.length, [trimmedInput]);
 
   const handleRegenerateClick = (moduleOverride?: string) => {
     const moduleToUse = moduleOverride || moduleName;
-    processText(inputText, moduleToUse, MISTRAL_API_KEY);
+    processText(inputText, moduleToUse);
   };
 
   const handleProcessClick = () => {
-    if (!MISTRAL_API_KEY) {
-      showError("Cannot process without a Mistral API Key.");
+    if (!trimmedInput) {
+      showError("Enter some event text before extracting.");
       return;
     }
-    processText(inputText, moduleName, MISTRAL_API_KEY);
+
+    processText(inputText, moduleName);
   };
 
   const handleExportClick = () => handleCalendarExport(eventDetails);
@@ -100,18 +96,24 @@ const Index = () => {
       </header>
 
       <main className="w-full max-w-3xl px-6 pb-24 flex flex-col space-y-8">
-        {!MISTRAL_API_KEY && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-red-50 border border-red-100 text-red-800 px-4 py-3 rounded-2xl flex items-center space-x-3 shadow-sm"
-          >
-            <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-500" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="space-y-3"
+        >
+          <div className="bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded-2xl flex items-start gap-3 shadow-sm">
+            <AlertCircle className="h-5 w-5 flex-shrink-0 text-amber-600 mt-0.5" />
             <p className="text-sm font-semibold">
-              API Key missing. Add <code className="bg-red-100 px-1 rounded">VITE_MISTRAL_API_KEY</code> to your environment.
+              AI requests go through the server endpoint at <code className="bg-amber-100 px-1 rounded">/api/mistral</code>. For local development, set <code className="bg-amber-100 px-1 rounded">MISTRAL_API_KEY</code> in <code className="bg-amber-100 px-1 rounded">.env.local</code>. For deployment, configure the same secret server-side.
             </p>
-          </motion.div>
-        )}
+          </div>
+
+          {status === "error" && errorMessage && (
+            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-2xl text-sm font-medium">
+              {errorMessage}
+            </div>
+          )}
+        </motion.div>
 
         <AnimatePresence mode="wait">
           {extractedJson ? (
@@ -222,13 +224,17 @@ const Index = () => {
                       onChange={(e) => setInputText(e.target.value)}
                       className="min-h-[240px] w-full resize-none border-none focus-visible:ring-0 p-0 text-xl sm:text-2xl font-medium text-gray-800 placeholder:text-gray-300 leading-relaxed"
                     />
+                    <div className="mt-4 flex items-center justify-between text-sm text-gray-400">
+                      <span>{inputCharacterCount} characters</span>
+                      <span>{aiConfig.hasProxy ? "Server-first AI flow" : "Direct browser AI flow"}</span>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
 
               <Button
                 onClick={handleProcessClick}
-                disabled={inputText.trim() === "" || isLoading || !MISTRAL_API_KEY}
+                disabled={!canSubmit}
                 className="w-full h-20 bg-gray-900 hover:bg-black text-white font-black rounded-[2rem] text-xl shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
               >
                 {isLoading ? (
