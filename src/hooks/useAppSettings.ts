@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-const FALLBACK_MODULE_NAME = "mistral-large-latest";
+const FALLBACK_MODULE_NAME = "mistral-small-2409";
 
 // List of valid Mistral model prefixes to validate stored settings
 const VALID_PREFIXES = ["mistral-", "open-mistral-", "pixtral-"];

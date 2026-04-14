@@ -1,7 +1,7 @@
 "use client";
 
 const MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions";
-const FALLBACK_MODULE_NAME = "mistral-large-latest";
+const FALLBACK_MODULE_NAME = "mistral-small-2409";
 const AI_TEMPERATURE = 0.2;
 
 interface MistralCompletionResponse {

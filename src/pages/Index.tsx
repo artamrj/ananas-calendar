@@ -26,9 +26,9 @@ import { showError } from "@/utils/toast";
 const MISTRAL_API_KEY = import.meta.env.VITE_MISTRAL_API_KEY || "";
 
 const alternativeAiModules = [
+  "mistral-small-2409",
   "mistral-large-latest",
   "mistral-medium-latest",
-  "mistral-small-latest",
   "open-mistral-7b",
   "pixtral-12b-latest"
 ];
