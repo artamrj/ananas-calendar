@@ -39,7 +39,7 @@ const ModuleNameDialog: React.FC<ModuleNameDialogProps> = ({
       return;
     }
     onSave(inputModuleName);
-    showSuccess("AI Module Name updated!");
+    showSuccess("Mistral AI Module Name updated!");
     onClose();
   };
 
@@ -47,23 +47,22 @@ const ModuleNameDialog: React.FC<ModuleNameDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Change AI Module Name</DialogTitle>
+          <DialogTitle>Change Mistral AI Module</DialogTitle>
           <DialogDescription>
-            Enter the desired AI module name for OpenRouter. This will be saved
-            locally.
+            Enter the desired Mistral AI model name (e.g., mistral-large-latest). This will be saved locally in your browser.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="moduleName" className="text-right">
-              Module Name
+              Model Name
             </Label>
             <Input
               id="moduleName"
               value={inputModuleName}
               onChange={(e) => setInputModuleName(e.target.value)}
               className="col-span-3"
-              placeholder="e.g., openai/gpt-4o"
+              placeholder="e.g., mistral-large-latest"
             />
           </div>
         </div>

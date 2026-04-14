@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -13,20 +13,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, CalendarPlus, Settings, RefreshCcw, Check } from "lucide-react";
+import { Loader2, CalendarPlus, Settings, RefreshCcw, Check, AlertCircle } from "lucide-react";
 import ModuleNameDialog from "@/components/ModuleNameDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { handleCalendarExport } from "@/services/calendarService";
 import { useEventProcessor } from "@/hooks/useEventProcessor";
 import { useAppSettings } from "@/hooks/useAppSettings";
 import EventDetailsDisplay from "@/components/EventDetailsDisplay";
+import { showError } from "@/utils/toast";
 
 const MISTRAL_API_KEY = import.meta.env.VITE_MISTRAL_API_KEY || "";
 
 // Define alternative Mistral AI modules
 const alternativeAiModules = [
+  "mistral-large-latest",
+  "mistral-medium-latest",
   "mistral-small-latest",
-  "open-mistral-7b"
+  "open-mistral-7b",
+  "pixtral-12b-latest"
 ];
 
 const Index = () => {
@@ -38,12 +42,25 @@ const Index = () => {
   const { moduleName, setModuleName } = useAppSettings();
   const { isLoading, extractedJson, eventDetails, processText, clearEventDetails } = useEventProcessor();
 
+  useEffect(() => {
+    if (!MISTRAL_API_KEY) {
+      showError("Mistral API Key is missing! Please set VITE_MISTRAL_API_KEY in your environment.");
+    }
+  }, []);
+
   const handleRegenerateClick = (moduleOverride?: string) => {
     const moduleToUse = moduleOverride || moduleName;
     processText(inputText, moduleToUse, MISTRAL_API_KEY);
   };
 
-  const handleProcessClick = () => processText(inputText, moduleName, MISTRAL_API_KEY);
+  const handleProcessClick = () => {
+    if (!MISTRAL_API_KEY) {
+      showError("Cannot process without a Mistral API Key.");
+      return;
+    }
+    processText(inputText, moduleName, MISTRAL_API_KEY);
+  };
+
   const handleExportClick = () => handleCalendarExport(eventDetails);
 
   const handleBackToInput = () => {
@@ -65,6 +82,15 @@ const Index = () => {
       </header>
 
       <main className="flex-1 flex flex-col items-center overflow-hidden space-y-6 sm:space-y-8">
+        {!MISTRAL_API_KEY && (
+          <div className="w-full max-w-3xl bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl flex items-center space-x-3 shadow-sm">
+            <AlertCircle className="h-5 w-5 flex-shrink-0" />
+            <p className="text-sm font-medium">
+              API Key missing. Please add <strong>VITE_MISTRAL_API_KEY</strong> to your environment variables to use the AI features.
+            </p>
+          </div>
+        )}
+
         <Card className="w-full max-w-3xl flex flex-col bg-white shadow-xl border-none rounded-xl p-4 sm:p-6">
           {extractedJson ? (
             <>
@@ -89,14 +115,12 @@ const Index = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem onClick={() => handleRegenerateClick(moduleName)}>
-                      {moduleName}
-                      <Check className="ml-auto h-4 w-4 text-green-500" />
-                    </DropdownMenuItem>
+                    <DropdownMenuLabel>Switch Mistral Model</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {alternativeAiModules.map((mod) => (
                       <DropdownMenuItem key={mod} onClick={() => handleRegenerateClick(mod)}>
-                        {mod}
+                        <span className="flex-1">{mod}</span>
+                        {moduleName === mod && <Check className="ml-2 h-4 w-4 text-green-500" />}
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>
@@ -123,7 +147,7 @@ const Index = () => {
                 <Label htmlFor="event-text" className="sr-only">Event Text</Label>
                 <Textarea
                   id="event-text"
-                  placeholder="e.g., 'Team meeting on Friday...'"
+                  placeholder="e.g., 'Team meeting on Friday at 3pm in the conference room...'"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   rows={isMobile ? 6 : 8}
@@ -162,7 +186,7 @@ const Index = () => {
         ) : (
           <Button
             onClick={handleProcessClick}
-            disabled={inputText.trim() === "" || isLoading}
+            disabled={inputText.trim() === "" || isLoading || !MISTRAL_API_KEY}
             className="w-full max-w-3xl bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-xl text-base sm:text-lg flex items-center justify-center space-x-2 shadow-md"
           >
             {isLoading ? (
