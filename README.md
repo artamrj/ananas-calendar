@@ -199,6 +199,7 @@ Notes:
 - `MISTRAL_API_KEY` is used by the local dev proxy and deployment proxy
 - `VITE_DEFAULT_AI_MODULE` sets the default selected AI model in the UI
 - if no valid model is supplied, the app falls back to `mistral-small-2409`
+- never place secret API keys in `VITE_`-prefixed variables, because those are intended for client-side exposure
 
 ### Run Locally
 

@@ -1,4 +1,6 @@
 const MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions";
+const MAX_PROMPT_LENGTH = 12000;
+const MODEL_NAME_PATTERN = /^(mistral|open-mistral|pixtral)-[a-z0-9.-]+$/i;
 
 interface Env {
   ASSETS: {
@@ -52,8 +54,16 @@ const handleMistralProxy = async (
     return json({ error: "Missing prompt." }, 400);
   }
 
+  if (body.prompt.length > MAX_PROMPT_LENGTH) {
+    return json({ error: `Prompt is too long. Maximum length is ${MAX_PROMPT_LENGTH} characters.` }, 400);
+  }
+
   if (!body.model?.trim()) {
     return json({ error: "Missing model." }, 400);
+  }
+
+  if (!MODEL_NAME_PATTERN.test(body.model.trim())) {
+    return json({ error: "Unsupported model name." }, 400);
   }
 
   const upstreamResponse = await fetch(MISTRAL_API_URL, {

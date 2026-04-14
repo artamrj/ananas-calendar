@@ -4,6 +4,7 @@ import {
   getEventDateRangeLabel,
   getEventTimeRangeLabel,
 } from "@/lib/event-formatters";
+import { isSafeUrl } from "@/lib/security";
 import { formatRrule } from "@/utils/rruleFormatter";
 
 interface EventDetailsDisplayProps {
@@ -22,6 +23,7 @@ const EventDetailsDisplay = ({ eventDetails }: EventDetailsDisplayProps) => {
   const dateLabel = getEventDateRangeLabel(eventDetails);
   const timeLabel = getEventTimeRangeLabel(eventDetails);
   const formattedRecurrence = formatRrule(eventDetails.recurrence_rule);
+  const safeLink = eventDetails.link && isSafeUrl(eventDetails.link) ? eventDetails.link : undefined;
 
   return (
     <div className="space-y-6">
@@ -76,7 +78,7 @@ const EventDetailsDisplay = ({ eventDetails }: EventDetailsDisplayProps) => {
           </div>
         )}
 
-        {eventDetails.link && (
+        {safeLink && (
           <div className="flex items-start space-x-4 rounded-2xl border border-purple-100/50 bg-purple-50/50 p-4">
             <div className="rounded-xl bg-white p-2 shadow-sm">
               <Link className="h-6 w-6 text-purple-500" />
@@ -84,12 +86,12 @@ const EventDetailsDisplay = ({ eventDetails }: EventDetailsDisplayProps) => {
             <div className="flex min-w-0 flex-col overflow-hidden">
               <span className="text-xs font-bold text-purple-400 uppercase tracking-wider">Link</span>
               <a
-                href={eventDetails.link}
+                href={safeLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="break-all text-lg font-bold text-purple-600 hover:underline"
               >
-                {eventDetails.link}
+                {safeLink}
               </a>
             </div>
           </div>

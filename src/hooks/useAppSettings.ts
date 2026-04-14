@@ -1,11 +1,8 @@
 import { useState, useEffect } from "react";
 import { env } from "@/lib/env";
+import { isAllowedModelName } from "@/lib/security";
 
-const VALID_PREFIXES = ["mistral-", "open-mistral-", "pixtral-"];
 const STORAGE_KEY = "aiModuleName";
-
-const isValidModelName = (value: string): boolean =>
-  VALID_PREFIXES.some((prefix) => value.startsWith(prefix));
 
 export const useAppSettings = () => {
   const [moduleName, setModuleName] = useState<string>(() => {
@@ -14,11 +11,11 @@ export const useAppSettings = () => {
     }
 
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored && isValidModelName(stored)) {
+    if (stored && isAllowedModelName(stored)) {
       return stored;
     }
 
-    return isValidModelName(env.defaultAiModel)
+    return isAllowedModelName(env.defaultAiModel)
       ? env.defaultAiModel
       : "mistral-small-2409";
   });
