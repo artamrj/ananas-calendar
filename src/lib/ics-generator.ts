@@ -1,4 +1,5 @@
 import type { EventDetails } from "@/types/event";
+import { sanitizeRrule } from "@/lib/security";
 
 const pad = (num: number) => num.toString().padStart(2, "0");
 
@@ -57,6 +58,10 @@ export const generateIcs = (event: EventDetails): string => {
     }
   }
 
+  const safeRrule = event.recurrence_rule
+    ? sanitizeRrule(event.recurrence_rule)
+    : undefined;
+
   const icsLines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
@@ -72,7 +77,7 @@ export const generateIcs = (event: EventDetails): string => {
   if (event.description) icsLines.push(`DESCRIPTION:${escapeIcsText(event.description)}`);
   if (event.location) icsLines.push(`LOCATION:${escapeIcsText(event.location)}`);
   if (event.link) icsLines.push(`URL:${escapeIcsText(event.link)}`);
-  if (event.recurrence_rule) icsLines.push(`RRULE:${event.recurrence_rule}`);
+  if (safeRrule) icsLines.push(`RRULE:${safeRrule}`);
 
   icsLines.push("END:VEVENT", "END:VCALENDAR");
 

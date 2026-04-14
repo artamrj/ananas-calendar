@@ -1,5 +1,6 @@
 import { eventExtractionPrompt } from "@/ai-prompts/eventExtractionPrompt";
 import { summarizationPrompt } from "@/ai-prompts/summarizationPrompt";
+import { MAX_PROMPT_LENGTH } from "@/lib/security";
 import { callAi, resolveAiModel } from "@/services/aiClient";
 import { getCurrentContext } from "./aiHelpers";
 import {
@@ -17,6 +18,10 @@ export const processTextForEventExtraction = async (
 ): Promise<ProcessTextResult> => {
   if (!inputText.trim()) {
     throw new Error("Input text cannot be empty for event extraction.");
+  }
+
+  if (inputText.length > MAX_PROMPT_LENGTH) {
+    throw new Error(`Input text is too long. Maximum length is ${MAX_PROMPT_LENGTH} characters.`);
   }
 
   const context = getCurrentContext(locale, timeZone);

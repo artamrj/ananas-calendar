@@ -4,6 +4,8 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 const MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions";
+const MAX_PROMPT_LENGTH = 12000;
+const MODEL_NAME_PATTERN = /^(mistral|open-mistral|pixtral)-[a-z0-9.-]+$/i;
 
 interface ProxyRequestBody {
   prompt?: string;
@@ -35,8 +37,7 @@ export default defineConfig(({ mode }) => {
               return;
             }
 
-            const apiKey =
-              env.MISTRAL_API_KEY?.trim() || env.VITE_MISTRAL_API_KEY?.trim();
+            const apiKey = env.MISTRAL_API_KEY?.trim();
 
             if (!apiKey) {
               res.statusCode = 500;
@@ -44,7 +45,7 @@ export default defineConfig(({ mode }) => {
               res.end(
                 JSON.stringify({
                   error:
-                    "Local dev server is missing MISTRAL_API_KEY. Rename VITE_MISTRAL_API_KEY to MISTRAL_API_KEY in .env.local.",
+                    "Local dev server is missing MISTRAL_API_KEY.",
                 }),
               );
               return;
@@ -72,10 +73,24 @@ export default defineConfig(({ mode }) => {
               return;
             }
 
+            if (body.prompt.length > MAX_PROMPT_LENGTH) {
+              res.statusCode = 400;
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify({ error: `Prompt is too long. Maximum length is ${MAX_PROMPT_LENGTH} characters.` }));
+              return;
+            }
+
             if (!body.model?.trim()) {
               res.statusCode = 400;
               res.setHeader("Content-Type", "application/json");
               res.end(JSON.stringify({ error: "Missing model." }));
+              return;
+            }
+
+            if (!MODEL_NAME_PATTERN.test(body.model.trim())) {
+              res.statusCode = 400;
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify({ error: "Unsupported model name." }));
               return;
             }
 
