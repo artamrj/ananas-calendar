@@ -19,12 +19,9 @@ export const formatRrule = (rrule: string | undefined): string | undefined => {
   const count = parts['COUNT'];
   const until = parts['UNTIL'];
 
-  let humanReadable = '';
-
   switch (freq) {
     case 'DAILY':
-      humanReadable = 'Daily';
-      break;
+      return count ? `Daily for ${count} occurrences` : until ? `Daily until ${formatUntil(until)}` : 'Daily';
     case 'WEEKLY':
       if (byday) {
         const days = byday.split(',').map(day => {
@@ -39,46 +36,40 @@ export const formatRrule = (rrule: string | undefined): string | undefined => {
             default: return day;
           }
         });
-        humanReadable = `Every ${days.join(', ')}`;
+        return count
+          ? `Every ${days.join(', ')} for ${count} occurrences`
+          : until
+            ? `Every ${days.join(', ')} until ${formatUntil(until)}`
+            : `Every ${days.join(', ')}`;
       } else {
-        humanReadable = 'Weekly';
+        return count ? `Weekly for ${count} occurrences` : until ? `Weekly until ${formatUntil(until)}` : 'Weekly';
       }
-      break;
     case 'MONTHLY':
-      humanReadable = 'Monthly';
-      break;
+      return count ? `Monthly for ${count} occurrences` : until ? `Monthly until ${formatUntil(until)}` : 'Monthly';
     case 'YEARLY':
-      humanReadable = 'Yearly';
-      break;
+      return count ? `Yearly for ${count} occurrences` : until ? `Yearly until ${formatUntil(until)}` : 'Yearly';
     default:
       // If frequency is not recognized, return the cleaned rule,
       // as it might be a valid but unhandled RRULE part.
       return cleanRrule;
   }
+};
 
-  if (count) {
-    humanReadable += ` for ${count} occurrences`;
-  } else if (until) {
-    try {
-      // UNTIL format is YYYYMMDD or YYYYMMDDTHHMMSSZ
-      const datePart = until.substring(0, 8);
-      const year = parseInt(datePart.substring(0, 4));
-      const month = parseInt(datePart.substring(4, 6)) - 1; // Month is 0-indexed
-      const day = parseInt(datePart.substring(6, 8));
-      const untilDate = new Date(year, month, day);
+const formatUntil = (until: string): string => {
+  try {
+    const datePart = until.substring(0, 8);
+    const year = parseInt(datePart.substring(0, 4));
+    const month = parseInt(datePart.substring(4, 6)) - 1;
+    const day = parseInt(datePart.substring(6, 8));
+    const untilDate = new Date(year, month, day);
 
-      const formattedUntil = new Intl.DateTimeFormat(navigator.language, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }).format(untilDate);
-      humanReadable += ` until ${formattedUntil}`;
-    } catch (e) {
-      console.error("Error formatting UNTIL date:", until, e);
-      // Fallback to showing the raw UNTIL if parsing fails
-      humanReadable += ` until ${until}`;
-    }
+    return new Intl.DateTimeFormat(navigator.language, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }).format(untilDate);
+  } catch (error) {
+    console.error("Error formatting UNTIL date:", until, error);
+    return until;
   }
-
-  return humanReadable;
 };

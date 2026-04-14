@@ -3,6 +3,9 @@ import { toast } from "sonner";
 import { processTextForEventExtraction, summarizeEventDescription } from "@/services/aiService";
 import { EventDetails } from "@/lib/ics-generator";
 
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : "Unknown error";
+
 interface UseEventProcessorReturn {
   isLoading: boolean;
   extractedJson: string | null;
@@ -50,9 +53,9 @@ export const useEventProcessor = (): UseEventProcessorReturn => {
     toast.promise(apiCallPromise, {
       loading: "Ananas is thinking... 🍍✨",
       success: (message) => message,
-      error: (err: any) => {
+      error: (err: unknown) => {
         console.error("Error processing text:", err);
-        return `Failed to process text: ${err.message || "Unknown error"} 💔`;
+        return `Failed to process text: ${getErrorMessage(err)} 💔`;
       },
       finally: () => {
         setIsLoading(false);

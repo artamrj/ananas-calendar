@@ -12,6 +12,20 @@ interface MistralCompletionResponse {
   }>;
 }
 
+interface MistralApiErrorResponse {
+  message?: string;
+}
+
+interface MistralChatRequestBody {
+  model: string;
+  messages: Array<{
+    role: "user";
+    content: string;
+  }>;
+  temperature: number;
+  response_format?: { type: "json_object" };
+}
+
 /**
  * Formats the current date and time in an unambiguous way for AI to use as context.
  */
@@ -47,7 +61,7 @@ export const callMistralApi = async (
 ): Promise<string> => {
   const effectiveModuleName = moduleName || import.meta.env.VITE_DEFAULT_AI_MODULE || FALLBACK_MODULE_NAME;
 
-  const body: any = {
+  const body: MistralChatRequestBody = {
     model: effectiveModuleName,
     messages: [{ role: "user", content: promptContent }],
     temperature: AI_TEMPERATURE,
@@ -67,7 +81,9 @@ export const callMistralApi = async (
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData: MistralApiErrorResponse = await response.json().catch(
+      () => ({}),
+    );
     throw new Error(errorData.message || `Mistral API error: ${response.statusText}`);
   }
 

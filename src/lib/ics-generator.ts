@@ -38,7 +38,7 @@ export const generateIcs = (event: EventDetails): string => {
 
   // Calculate DTEND
   let dtEnd: string;
-  let dtEndProp = `DTEND${isTimed ? '' : ';VALUE=DATE'}`;
+  const dtEndProp = `DTEND${isTimed ? '' : ';VALUE=DATE'}`;
 
   if (isTimed) {
     let endDate = event.date_end || event.date_start;
