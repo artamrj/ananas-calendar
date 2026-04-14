@@ -1,43 +1,48 @@
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { processTextForEventExtraction, summarizeEventDescription } from "@/services/aiService";
-import { EventDetails } from "@/lib/ics-generator";
+import type { EventDetails, ProcessingStatus } from "@/types/event";
 
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : "Unknown error";
 
 interface UseEventProcessorReturn {
+  status: ProcessingStatus;
   isLoading: boolean;
+  errorMessage: string | null;
   extractedJson: string | null;
   eventDetails: EventDetails | null;
-  processText: (text: string, moduleName: string, apiKey: string) => Promise<void>;
-  setExtractedJson: React.Dispatch<React.SetStateAction<string | null>>;
-  setEventDetails: React.Dispatch<React.SetStateAction<EventDetails | null>>;
+  processText: (text: string, moduleName: string) => Promise<void>;
   clearEventDetails: () => void;
 }
 
 export const useEventProcessor = (): UseEventProcessorReturn => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [status, setStatus] = useState<ProcessingStatus>("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [extractedJson, setExtractedJson] = useState<string | null>(null);
   const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
 
   const clearEventDetails = useCallback(() => {
+    setStatus("idle");
+    setErrorMessage(null);
     setExtractedJson(null);
     setEventDetails(null);
   }, []);
 
-  const processText = useCallback(async (text: string, moduleName: string, apiKey: string) => {
-    setIsLoading(true);
+  const processText = useCallback(async (text: string, moduleName: string) => {
+    setStatus("processing");
+    setErrorMessage(null);
+    setExtractedJson(null);
+    setEventDetails(null);
 
-    const apiCallPromise = processTextForEventExtraction(text, moduleName, apiKey)
+    const apiCallPromise = processTextForEventExtraction(text, moduleName)
       .then(async (result) => {
         let finalEventDetails = result.eventDetails;
 
         if (finalEventDetails.description && finalEventDetails.description.length > 250) {
           const summarizedDescription = await summarizeEventDescription(
             finalEventDetails.description,
-            moduleName,
-            apiKey
+            moduleName
           );
           finalEventDetails = {
             ...finalEventDetails,
@@ -47,21 +52,29 @@ export const useEventProcessor = (): UseEventProcessorReturn => {
 
         setExtractedJson(JSON.stringify(finalEventDetails, null, 2));
         setEventDetails(finalEventDetails);
-        return "Event details extracted and summarized! ✨";
+        setStatus("success");
+        return "Event details extracted successfully.";
       });
 
     toast.promise(apiCallPromise, {
-      loading: "Ananas is thinking... 🍍✨",
+      loading: "Extracting event details...",
       success: (message) => message,
       error: (err: unknown) => {
-        console.error("Error processing text:", err);
-        return `Failed to process text: ${getErrorMessage(err)} 💔`;
+        const message = getErrorMessage(err);
+        setStatus("error");
+        setErrorMessage(message);
+        return `Failed to process text: ${message}`;
       },
-      finally: () => {
-        setIsLoading(false);
-      }
     });
   }, []);
 
-  return { isLoading, extractedJson, eventDetails, processText, setExtractedJson, setEventDetails, clearEventDetails };
+  return {
+    status,
+    isLoading: status === "processing",
+    errorMessage,
+    extractedJson,
+    eventDetails,
+    processText,
+    clearEventDetails,
+  };
 };

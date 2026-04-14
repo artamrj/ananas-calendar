@@ -1,6 +1,7 @@
-import { generateIcs, EventDetails } from "@/lib/ics-generator";
+import { generateIcs } from "@/lib/ics-generator";
 import { toast } from "sonner";
 import { showError } from "@/utils/toast";
+import type { EventDetails } from "@/types/event";
 
 const isLegacyIosBrowser = (): boolean =>
   "MSStream" in window;
@@ -18,7 +19,7 @@ const sanitizeFilename = (value: string): string =>
 
 export const handleCalendarExport = (eventDetails: EventDetails | null) => {
   if (!eventDetails || !eventDetails.date_start) {
-    showError("No valid event details to add to calendar. 🗓️");
+    showError("No valid event details are available to export.");
     return;
   }
 
@@ -37,11 +38,11 @@ export const handleCalendarExport = (eventDetails: EventDetails | null) => {
       const dataUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
       const a = document.createElement("a");
       a.href = dataUrl;
-      a.setAttribute("download", `${sanitizedTitle}.ics`); // Re-added download attribute
+      a.setAttribute("download", `${sanitizedTitle}.ics`);
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      toast.success("Attempting to open in Calendar... (you may need to open the downloaded file) 🍍📆");
+      toast.success("Calendar file prepared. If Calendar does not open automatically, open the downloaded file manually.");
       return;
     }
 
@@ -56,9 +57,8 @@ export const handleCalendarExport = (eventDetails: EventDetails | null) => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    toast.success("Event file downloaded! (please open it to add to calendar) 📥");
+    toast.success("Calendar file downloaded.");
   } catch (error: unknown) {
-    console.error(error);
-    showError(`Failed to add event to calendar: ${getErrorMessage(error)} 😭`);
+    showError(`Failed to export calendar file: ${getErrorMessage(error)}`);
   }
 };

@@ -1,38 +1,34 @@
-"use client";
-
 import { useState, useEffect } from "react";
+import { env } from "@/lib/env";
 
-const FALLBACK_MODULE_NAME = "mistral-small-2409";
-
-// List of valid Mistral model prefixes to validate stored settings
 const VALID_PREFIXES = ["mistral-", "open-mistral-", "pixtral-"];
+const STORAGE_KEY = "aiModuleName";
+
+const isValidModelName = (value: string): boolean =>
+  VALID_PREFIXES.some((prefix) => value.startsWith(prefix));
 
 export const useAppSettings = () => {
   const [moduleName, setModuleName] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("aiModuleName");
-      
-      // If we have a stored value, check if it's a valid Mistral model
-      if (stored) {
-        const isValid = VALID_PREFIXES.some(prefix => stored.startsWith(prefix));
-        if (isValid) return stored;
-      }
-      
-      // Fallback to env var or hardcoded default
-      const envDefault = import.meta.env.VITE_DEFAULT_AI_MODULE;
-      if (envDefault && VALID_PREFIXES.some(prefix => envDefault.startsWith(prefix))) {
-        return envDefault;
-      }
-      
-      return FALLBACK_MODULE_NAME;
+    if (typeof window === "undefined") {
+      return env.defaultAiModel;
     }
-    return FALLBACK_MODULE_NAME;
+
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored && isValidModelName(stored)) {
+      return stored;
+    }
+
+    return isValidModelName(env.defaultAiModel)
+      ? env.defaultAiModel
+      : "mistral-small-2409";
   });
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("aiModuleName", moduleName);
+    if (typeof window === "undefined") {
+      return;
     }
+
+    localStorage.setItem(STORAGE_KEY, moduleName);
   }, [moduleName]);
 
   return { moduleName, setModuleName };
