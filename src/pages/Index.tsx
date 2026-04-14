@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, CalendarPlus, Settings, RefreshCcw, Check, AlertCircle, Sparkles } from "lucide-react";
+import { Loader2, CalendarPlus, Settings, RefreshCcw, Check, Sparkles } from "lucide-react";
 import ModuleNameDialog from "@/components/ModuleNameDialog";
 import { handleCalendarExport } from "@/services/calendarService";
 import { useEventProcessor } from "@/hooks/useEventProcessor";
@@ -101,13 +101,6 @@ const Index = () => {
           animate={{ opacity: 1, scale: 1 }}
           className="space-y-3"
         >
-          <div className="bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded-2xl flex items-start gap-3 shadow-sm">
-            <AlertCircle className="h-5 w-5 flex-shrink-0 text-amber-600 mt-0.5" />
-            <p className="text-sm font-semibold">
-              AI requests go through the server endpoint at <code className="bg-amber-100 px-1 rounded">/api/mistral</code>. For local development, set <code className="bg-amber-100 px-1 rounded">MISTRAL_API_KEY</code> in <code className="bg-amber-100 px-1 rounded">.env.local</code>. For deployment, configure the same secret server-side.
-            </p>
-          </div>
-
           {status === "error" && errorMessage && (
             <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-2xl text-sm font-medium">
               {errorMessage}
