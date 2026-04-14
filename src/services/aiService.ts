@@ -47,7 +47,9 @@ export const processTextForEventExtraction = async (
     };
   } catch (parseError) {
     console.error("Failed to parse AI response as JSON:", content, parseError);
-    throw new Error("AI response was not valid JSON for event details.");
+    throw new Error("AI response was not valid JSON for event details.", {
+      cause: parseError,
+    });
   }
 };
 

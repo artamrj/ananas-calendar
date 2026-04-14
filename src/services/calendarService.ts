@@ -2,6 +2,20 @@ import { generateIcs, EventDetails } from "@/lib/ics-generator";
 import { toast } from "sonner";
 import { showError } from "@/utils/toast";
 
+const isLegacyIosBrowser = (): boolean =>
+  "MSStream" in window;
+
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : "Unknown error";
+
+const sanitizeFilename = (value: string): string =>
+  Array.from(value, (char) => {
+    const code = char.charCodeAt(0);
+    const isControlChar = code >= 0 && code <= 31;
+    const isInvalidFilenameChar = '<>:"/\\|?*'.includes(char);
+    return isControlChar || isInvalidFilenameChar ? "_" : char;
+  }).join("");
+
 export const handleCalendarExport = (eventDetails: EventDetails | null) => {
   if (!eventDetails || !eventDetails.date_start) {
     showError("No valid event details to add to calendar. 🗓️");
@@ -10,12 +24,12 @@ export const handleCalendarExport = (eventDetails: EventDetails | null) => {
 
   try {
     const icsContent = generateIcs(eventDetails);
-    const sanitizedTitle = (eventDetails.title || "event").replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
+    const sanitizedTitle = sanitizeFilename(eventDetails.title || "event");
 
     // 1. Detect OS
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isMac = userAgent.includes("macintosh");
-    const isIOS = /ipad|iphone|ipod/.test(userAgent) && !((window as any).MSStream);
+    const isIOS = /ipad|iphone|ipod/.test(userAgent) && !isLegacyIosBrowser();
     const isAppleDevice = isMac || isIOS;
 
     // 2. Apple Logic (Direct Import via programmatic click)
@@ -43,8 +57,8 @@ export const handleCalendarExport = (eventDetails: EventDetails | null) => {
     URL.revokeObjectURL(url);
 
     toast.success("Event file downloaded! (please open it to add to calendar) 📥");
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(error);
-    showError(`Failed to add event to calendar: ${error.message || "Unknown error"} 😭`);
+    showError(`Failed to add event to calendar: ${getErrorMessage(error)} 😭`);
   }
 };
