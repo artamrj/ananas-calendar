@@ -80,7 +80,23 @@
   }
 
   html,
+  body,
   #root {
     min-height: 100%;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  textarea {
+    scrollbar-gutter: stable;
   }
 }
