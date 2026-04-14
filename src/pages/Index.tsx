@@ -73,7 +73,6 @@ const Index = () => {
     loadStoredEvent,
   } = useEventProcessor();
   const {
-    activeUser,
     history,
     saveCalendar,
     removeCalendar,
@@ -267,13 +266,7 @@ const Index = () => {
                     <CardHeader className="flex flex-col gap-4 px-5 pb-0 pt-5 sm:px-8 sm:pt-8">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <CardTitle className="text-2xl font-bold text-gray-900">Event Details</CardTitle>
-                          {activeRecord && (
-                            <p className="mt-2 text-sm text-gray-500">
-                              Saved in <span className="font-semibold text-gray-800">{activeUser?.name}</span> on{" "}
-                              {getLastTouchedLabel(activeRecord)}
-                            </p>
-                          )}
+                          <CardTitle className="text-2xl font-bold text-orange-500">Event Details</CardTitle>
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -309,16 +302,13 @@ const Index = () => {
                         </DropdownMenu>
                       </div>
 
-                      <div className="flex flex-wrap gap-3 pb-5 sm:pb-6">
-                        <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">
-                          Auto-saved locally
-                        </div>
-                        {activeRecord?.lastExportedAt && (
-                          <div className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-sky-700">
+                      {activeRecord?.lastExportedAt && (
+                        <div className="pb-5 sm:pb-6">
+                          <div className="inline-flex rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-sky-700">
                             Exported {activeRecord.exportCount}x
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </CardHeader>
                     <CardContent className="px-5 pb-5 sm:px-8 sm:pb-8">
                       {showJsonRaw ? (
