@@ -66,27 +66,28 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-dvh w-full overflow-x-hidden bg-[#fafafa]">
+    <div className="min-h-dvh w-full overflow-x-hidden bg-[#faf7f2]">
       {/* Decorative Background Elements */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] h-[40%] w-[40%] rounded-full bg-orange-200/30 blur-[120px]" />
         <div className="absolute right-[-10%] bottom-[-10%] h-[40%] w-[40%] rounded-full bg-yellow-200/30 blur-[120px]" />
+        <div className="absolute inset-x-0 top-0 h-56 bg-gradient-to-b from-white/80 via-white/35 to-transparent" />
       </div>
 
-      <div className="mx-auto flex min-h-dvh w-full max-w-6xl flex-col px-4 pb-4 pt-12 sm:px-6 sm:pt-14 lg:px-8">
-      <header className="w-full max-w-4xl mx-auto flex flex-col items-center space-y-1 px-2 pb-0 pt-7 text-center sm:space-y-1.5 sm:pb-0 sm:pt-9">
+      <div className="mx-auto flex min-h-dvh w-full max-w-6xl flex-col px-4 pb-6 pt-6 sm:px-6 sm:pb-8 sm:pt-8 lg:px-8">
+      <header className="mx-auto flex w-full max-w-4xl shrink-0 flex-col items-center px-2 pb-6 pt-4 text-center sm:pb-8 sm:pt-6">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="flex items-baseline gap-1"
+          className="flex flex-wrap items-end justify-center gap-2 sm:gap-3"
         >
-          <div className="bg-transparent p-0 rounded-2xl">
-            <span className="inline-block text-5xl leading-[0.9] align-bottom sm:text-6xl lg:text-7xl" role="img" aria-label="pineapple">
+          <div className="flex items-end self-end rounded-2xl bg-transparent p-0 pb-0.5 sm:pb-1">
+            <span className="inline-block text-5xl leading-none sm:text-6xl lg:text-7xl" role="img" aria-label="pineapple">
               🍍
             </span>
           </div>
-          <h1 className="text-4xl leading-none font-black tracking-tight text-gray-900 sm:text-6xl lg:text-7xl">
+          <h1 className="self-end text-4xl font-black leading-none tracking-tight text-gray-900 sm:text-6xl lg:text-7xl">
             Ananas<span className="text-orange-500">.</span>
           </h1>
         </motion.div>
@@ -94,7 +95,7 @@ const Index = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.6 }}
-          className="text-sm font-black uppercase tracking-[0.22em] text-orange-500 sm:text-base"
+          className="mt-2 text-xs font-black uppercase tracking-[0.22em] text-orange-500 sm:text-sm"
         >
           Paste, Peel and Put to the Calendar.. the Ananas Way!
         </motion.p>
@@ -102,18 +103,18 @@ const Index = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.35, duration: 0.6 }}
-          className="max-w-2xl text-base font-medium text-gray-500 sm:text-lg lg:text-xl"
+          className="mt-3 max-w-2xl text-sm font-medium text-gray-500 sm:text-base lg:text-lg"
         >
           Transform messy text into perfect calendar events in seconds.
         </motion.p>
       </header>
 
       <main className="flex min-h-0 w-full flex-1 flex-col">
-        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-2 pb-20 pt-0 sm:pb-24">
+        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-2 pb-6 sm:pb-8">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="space-y-0"
+          className="mb-4 space-y-0"
         >
           {status === "error" && errorMessage && (
             <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-2xl text-sm font-medium">
@@ -126,13 +127,13 @@ const Index = () => {
           {extractedJson ? (
             <motion.div
               key="results"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.4 }}
-              className="flex min-h-0 flex-1 flex-col justify-start space-y-4 pt-0 sm:space-y-6"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25 }}
+              className="flex min-h-0 flex-1 flex-col space-y-4 sm:space-y-6"
             >
-              <Card className="overflow-hidden rounded-[2rem] border border-white/60 bg-white/85 shadow-2xl shadow-orange-100/50 backdrop-blur-xl">
+              <Card className="flex min-h-[28rem] flex-col overflow-hidden rounded-[2rem] border border-white/60 bg-white/90 shadow-2xl shadow-orange-100/50 backdrop-blur-xl">
                 <CardHeader className="flex flex-row items-center justify-between px-5 pb-3 pt-5 sm:px-8 sm:pb-4 sm:pt-8">
                   <CardTitle className="text-2xl font-bold text-gray-900">
                     Event Details
@@ -170,9 +171,9 @@ const Index = () => {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </CardHeader>
-                <CardContent className="px-5 pb-5 sm:px-8 sm:pb-8">
+                <CardContent className="min-h-0 flex-1 px-5 pb-5 sm:px-8 sm:pb-8">
                   {showJsonRaw ? (
-                    <div className="bg-gray-900 rounded-2xl p-6 overflow-auto max-h-80">
+                    <div className="max-h-[26rem] overflow-auto rounded-2xl bg-gray-900 p-6">
                       <code className="text-orange-300 text-sm font-mono leading-relaxed">
                         {extractedJson}
                       </code>
@@ -203,7 +204,7 @@ const Index = () => {
               
               <button
                 onClick={() => setShowJsonRaw(!showJsonRaw)}
-                className="w-full text-gray-400 hover:text-gray-600 text-sm font-semibold transition-colors"
+                className="w-full text-sm font-semibold text-gray-400 transition-colors hover:text-gray-600"
               >
                 {showJsonRaw ? "Switch to Visual View" : "View Raw Data"}
               </button>
@@ -214,13 +215,13 @@ const Index = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
-              className="flex min-h-0 flex-1 flex-col justify-center space-y-4 sm:space-y-6"
+              transition={{ duration: 0.25 }}
+              className="flex min-h-0 flex-1 flex-col justify-start space-y-4 sm:space-y-6"
             >
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 to-yellow-400 rounded-[2.5rem] blur opacity-20 group-focus-within:opacity-40 transition duration-1000 group-focus-within:duration-200"></div>
-                <Card className="relative overflow-hidden rounded-[2rem] border border-white/60 bg-white shadow-2xl shadow-orange-100/50">
-                  <CardContent className="p-5 sm:p-8">
+                <Card className="relative min-h-[28rem] overflow-hidden rounded-[2rem] border border-white/60 bg-white/92 shadow-2xl shadow-orange-100/50 backdrop-blur-xl">
+                  <CardContent className="flex min-h-[28rem] flex-col p-5 sm:p-8">
                     <Label htmlFor="event-text" className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 block">
                       Input Text
                     </Label>
@@ -229,7 +230,7 @@ const Index = () => {
                       placeholder="Paste your email, chat message, or notes here..."
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
-                      className="min-h-[180px] w-full resize-none border-none p-0 text-lg font-medium leading-relaxed text-gray-800 placeholder:text-gray-300 focus-visible:ring-0 sm:min-h-[220px] sm:text-xl lg:min-h-[240px] lg:text-2xl"
+                      className="min-h-[16rem] flex-1 resize-none border-none p-0 text-base font-medium leading-relaxed text-gray-800 placeholder:text-gray-300 focus-visible:ring-0 sm:min-h-[18rem] sm:text-lg lg:min-h-[20rem] lg:text-xl"
                     />
                     <div className="mt-4 flex flex-col gap-1 text-sm text-gray-400 sm:flex-row sm:items-center sm:justify-between">
                       <span>{inputCharacterCount} characters</span>
@@ -262,7 +263,7 @@ const Index = () => {
         </div>
       </main>
 
-      <footer className="sticky bottom-0 left-0 right-0 mt-auto flex justify-center pt-3 sm:pt-4">
+      <footer className="mt-6 flex shrink-0 justify-center pt-3 sm:mt-8 sm:pt-4">
         <div className="pointer-events-auto flex items-center space-x-4 rounded-full border border-gray-100 bg-white/88 px-4 py-2.5 shadow-xl backdrop-blur-md sm:space-x-6 sm:px-6 sm:py-3">
           <button
             onClick={() => setIsModuleNameDialogOpen(true)}
