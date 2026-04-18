@@ -219,7 +219,7 @@ const Index = () => {
               </motion.p>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="hidden gap-3 sm:grid sm:grid-cols-2">
               <button
                 type="button"
                 onClick={() => setIsModuleNameDialogOpen(true)}
