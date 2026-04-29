@@ -386,17 +386,19 @@ const Index = () => {
                   </Card>
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <Button
-                      onClick={handleExportClick}
-                      className="h-14 rounded-2xl bg-orange-500 text-base font-bold text-white shadow-lg shadow-orange-200 transition-all hover:scale-[1.01] hover:bg-orange-600 active:scale-[0.98] sm:h-16 sm:text-lg"
-                    >
-                      <CalendarPlus className="mr-2 h-6 w-6" />
-                      Add to Calendar
-                    </Button>
+                    {!isEditingPrompt && (
+                      <Button
+                        onClick={handleExportClick}
+                        className="h-14 rounded-2xl bg-orange-500 text-base font-bold text-white shadow-lg shadow-orange-200 transition-all hover:scale-[1.01] hover:bg-orange-600 active:scale-[0.98] sm:h-16 sm:text-lg"
+                      >
+                        <CalendarPlus className="mr-2 h-6 w-6" />
+                        Add to Calendar
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       onClick={handleBackToInput}
-                      className="h-14 rounded-2xl border-2 border-gray-200 text-base font-bold text-gray-700 transition-all hover:scale-[1.01] hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] sm:h-16 sm:text-lg"
+                      className={`h-14 rounded-2xl border-2 border-gray-200 text-base font-bold text-gray-700 transition-all hover:scale-[1.01] hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] sm:h-16 sm:text-lg${isEditingPrompt ? " sm:col-span-2" : ""}`}
                     >
                       <RefreshCcw className="mr-2 h-6 w-6" />
                       New Event
