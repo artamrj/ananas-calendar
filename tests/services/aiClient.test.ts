@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { callAi, resolveAiModel } from "@/services/aiClient";
+import { callAi, getAiConfigurationStatus, resolveAiModel } from "@/services/aiClient";
 
 describe("aiClient", () => {
   beforeEach(() => {
@@ -59,5 +59,32 @@ describe("aiClient", () => {
 
   it("falls back to the default configured model", () => {
     expect(resolveAiModel("  ")).toBe("mistral-small-2409");
+  });
+
+  it("uses the caller-provided model when it is non-empty", () => {
+    expect(resolveAiModel("open-mistral-7b")).toBe("open-mistral-7b");
+  });
+
+  it("uses the default model when no model argument is given", () => {
+    expect(resolveAiModel()).toBe("mistral-small-2409");
+  });
+
+  it("surfaces a fallback message when the error response body is not JSON", async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockResolvedValue(
+      new Response("Internal Server Error", {
+        status: 500,
+        headers: { "Content-Type": "text/plain" },
+      }),
+    );
+
+    await expect(callAi("extract this", "mistral-small-latest")).rejects.toThrow(
+      "Request failed with status 500.",
+    );
+  });
+
+  it("reports that the proxy is available", () => {
+    const status = getAiConfigurationStatus();
+    expect(status.hasProxy).toBe(true);
   });
 });

@@ -26,4 +26,25 @@ describe("useAppSettings", () => {
 
     expect(result.current.moduleName).toBe("mistral-small-2409");
   });
+
+  it("uses the hardcoded default when no model is stored", () => {
+    // localStorage is cleared by setup.ts after each test, so nothing is stored
+    const { result } = renderHook(() => useAppSettings());
+
+    // Default is "mistral-small-2409" (the env default or hardcoded fallback)
+    expect(result.current.moduleName).toBeTruthy();
+    expect(result.current.moduleName).toMatch(/^(mistral|open-mistral|pixtral)-/);
+  });
+
+  it("persists the module name to localStorage after an update", async () => {
+    const { result } = renderHook(() => useAppSettings());
+
+    act(() => {
+      result.current.setModuleName("mistral-large-latest");
+    });
+
+    await waitFor(() => {
+      expect(localStorage.getItem("aiModuleName")).toBe("mistral-large-latest");
+    });
+  });
 });

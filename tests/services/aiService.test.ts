@@ -61,6 +61,16 @@ describe("aiService", () => {
     ).rejects.toThrow(/AI response was not valid event JSON/);
   });
 
+  it("rejects input that exceeds the maximum prompt length", async () => {
+    const { processTextForEventExtraction } = await import("@/services/aiService");
+    const oversized = "A".repeat(12001);
+
+    await expect(
+      processTextForEventExtraction(oversized, "mistral-small-latest"),
+    ).rejects.toThrow(/too long/);
+    expect(callAiMock).not.toHaveBeenCalled();
+  });
+
   it("summarizes only long descriptions and falls back on failure", async () => {
     const { summarizeEventDescription } = await import("@/services/aiService");
     const longDescription = "A".repeat(400);
@@ -78,6 +88,14 @@ describe("aiService", () => {
     await expect(
       summarizeEventDescription("short", "mistral-small-latest"),
     ).resolves.toBe("short");
+  });
+
+  it("returns undefined as-is from summarizeEventDescription", async () => {
+    const { summarizeEventDescription } = await import("@/services/aiService");
+
+    await expect(
+      summarizeEventDescription(undefined, "mistral-small-latest"),
+    ).resolves.toBeUndefined();
   });
 
   it("truncates summaries that still exceed the maximum length", async () => {
