@@ -126,4 +126,74 @@ describe("api/mistral handler", () => {
       error: "Upstream bad request",
     });
   });
+
+  it("rejects a request with an invalid JSON body", async () => {
+    const response = await handler(
+      new Request("http://localhost/api/mistral", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{ not valid json",
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({
+      error: "Request body must be valid JSON.",
+    });
+  });
+
+  it("rejects a request without a model field", async () => {
+    const response = await handler(
+      new Request("http://localhost/api/mistral", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: "hello" }),
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({ error: "Missing model." });
+  });
+
+  it("rejects a prompt that exceeds the maximum length", async () => {
+    const response = await handler(
+      new Request("http://localhost/api/mistral", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: "A".repeat(12001),
+          model: "mistral-small-latest",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    const body = await response.json() as { error: string };
+    expect(body.error).toContain("too long");
+  });
+
+  it("falls back to a generic error message when the upstream response has no message field", async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({}), {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    const response = await handler(
+      new Request("http://localhost/api/mistral", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: "Extract this event",
+          model: "mistral-small-latest",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(503);
+    const body = await response.json() as { error: string };
+    expect(body.error).toContain("503");
+  });
 });
