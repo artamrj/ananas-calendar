@@ -7,10 +7,12 @@ import {
   Clock3,
   Download,
   Loader2,
+  Pencil,
   RefreshCcw,
   Settings,
   Sparkles,
   Trash2,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,6 +62,7 @@ const Index = () => {
   const [showJsonRaw, setShowJsonRaw] = useState(false);
   const [activeRecordId, setActiveRecordId] = useState<string | null>(null);
   const [visibleArchiveCount, setVisibleArchiveCount] = useState(ARCHIVE_PAGE_SIZE);
+  const [isEditingPrompt, setIsEditingPrompt] = useState(false);
 
   const { moduleName, setModuleName } = useAppSettings();
   const {
@@ -110,6 +113,7 @@ const Index = () => {
     try {
       const payload = await processText(inputText, moduleToUse);
       persistProcessedEvent(inputText, payload);
+      setIsEditingPrompt(false);
     } catch {
       // Toast and hook state already reflect the failure.
     }
@@ -147,10 +151,16 @@ const Index = () => {
     setInputText(record.sourceText);
     setActiveRecordId(record.id);
     setShowJsonRaw(false);
+    setIsEditingPrompt(false);
     loadStoredEvent({
       eventDetails: record.eventDetails,
       extractedJson: record.extractedJson,
     });
+  };
+
+  const handleOpenRecordInEditMode = (record: LocalCalendarRecord) => {
+    handleOpenRecord(record);
+    setIsEditingPrompt(true);
   };
 
   const handleDeleteRecord = (recordId: string) => {
@@ -174,6 +184,7 @@ const Index = () => {
     setInputText("");
     setShowJsonRaw(false);
     setActiveRecordId(null);
+    setIsEditingPrompt(false);
   };
 
   return (
@@ -268,38 +279,55 @@ const Index = () => {
                         <div>
                           <CardTitle className="text-2xl font-bold text-orange-500">Event Details</CardTitle>
                         </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="secondary"
-                              size="icon"
-                              className="h-10 w-10 rounded-full bg-gray-100 transition-all hover:bg-gray-200"
-                              disabled={isLoading}
-                            >
-                              {isLoading ? (
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                              ) : (
-                                <RefreshCcw className="h-5 w-5 text-gray-600" />
-                              )}
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2">
-                            <DropdownMenuLabel className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-gray-400">
-                              Mistral Models
-                            </DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            {alternativeAiModules.map((mod) => (
-                              <DropdownMenuItem
-                                key={mod}
-                                onClick={() => handleRegenerateClick(mod)}
-                                className="cursor-pointer rounded-xl px-3 py-2"
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            className={`h-10 w-10 rounded-full transition-all ${isEditingPrompt ? "bg-orange-100 hover:bg-orange-200" : "bg-gray-100 hover:bg-gray-200"}`}
+                            disabled={isLoading}
+                            onClick={() => setIsEditingPrompt((prev) => !prev)}
+                            aria-label={isEditingPrompt ? "Cancel editing prompt" : "Edit original prompt"}
+                            title={isEditingPrompt ? "Cancel editing prompt" : "Edit original prompt"}
+                          >
+                            {isEditingPrompt ? (
+                              <X className="h-5 w-5 text-orange-600" />
+                            ) : (
+                              <Pencil className="h-5 w-5 text-gray-600" />
+                            )}
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="secondary"
+                                size="icon"
+                                className="h-10 w-10 rounded-full bg-gray-100 transition-all hover:bg-gray-200"
+                                disabled={isLoading}
                               >
-                                <span className="flex-1 font-medium">{mod}</span>
-                                {moduleName === mod && <Check className="ml-2 h-4 w-4 text-orange-500" />}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                                {isLoading ? (
+                                  <Loader2 className="h-5 w-5 animate-spin" />
+                                ) : (
+                                  <RefreshCcw className="h-5 w-5 text-gray-600" />
+                                )}
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2">
+                              <DropdownMenuLabel className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-gray-400">
+                                Mistral Models
+                              </DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              {alternativeAiModules.map((mod) => (
+                                <DropdownMenuItem
+                                  key={mod}
+                                  onClick={() => handleRegenerateClick(mod)}
+                                  className="cursor-pointer rounded-xl px-3 py-2"
+                                >
+                                  <span className="flex-1 font-medium">{mod}</span>
+                                  {moduleName === mod && <Check className="ml-2 h-4 w-4 text-orange-500" />}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
 
                       {activeRecord?.lastExportedAt && (
@@ -314,6 +342,42 @@ const Index = () => {
                       {showJsonRaw ? (
                         <div className="max-h-[26rem] overflow-auto rounded-2xl bg-gray-950 p-6">
                           <code className="text-sm leading-relaxed text-orange-300">{extractedJson}</code>
+                        </div>
+                      ) : isEditingPrompt ? (
+                        <div className="space-y-4">
+                          <Label
+                            htmlFor="edit-prompt-text"
+                            className="block text-sm font-bold uppercase tracking-widest text-gray-400"
+                          >
+                            Edit Prompt
+                          </Label>
+                          <Textarea
+                            id="edit-prompt-text"
+                            value={inputText}
+                            onChange={(event) => setInputText(event.target.value)}
+                            className="min-h-[14rem] resize-none border-gray-200 bg-gray-50/60 text-base font-medium leading-relaxed text-gray-800 placeholder:text-gray-300 focus-visible:ring-orange-300 sm:text-lg"
+                            placeholder="Edit the original text to extract a different event…"
+                          />
+                          <div className="flex items-center justify-between text-sm text-gray-400">
+                            <span>{inputCharacterCount} characters</span>
+                          </div>
+                          <Button
+                            onClick={() => handleRegenerateClick()}
+                            disabled={inputCharacterCount === 0 || isLoading}
+                            className="h-12 w-full rounded-2xl bg-orange-500 text-base font-bold text-white shadow-lg shadow-orange-200 transition-all hover:scale-[1.01] hover:bg-orange-600 active:scale-[0.98] disabled:hover:scale-100"
+                          >
+                            {isLoading ? (
+                              <div className="flex items-center gap-2">
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                                <span>Analyzing…</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <Sparkles className="h-5 w-5" />
+                                <span>Regenerate with New Prompt</span>
+                              </div>
+                            )}
+                          </Button>
                         </div>
                       ) : (
                         <EventDetailsDisplay eventDetails={eventDetails} />
@@ -460,17 +524,32 @@ const Index = () => {
                               )}
                             </button>
 
-                            <button
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleDeleteRecord(record.id);
-                              }}
-                              className="rounded-full p-2 text-gray-400 transition hover:bg-white hover:text-red-500"
-                              aria-label={`Delete ${record.eventDetails.title || "saved event"}`}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleOpenRecordInEditMode(record);
+                                }}
+                                className="rounded-full p-2 text-gray-400 transition hover:bg-white hover:text-orange-500"
+                                aria-label={`Edit prompt for ${record.eventDetails.title || "saved event"}`}
+                                title="Edit prompt and regenerate"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleDeleteRecord(record.id);
+                                }}
+                                className="rounded-full p-2 text-gray-400 transition hover:bg-white hover:text-red-500"
+                                aria-label={`Delete ${record.eventDetails.title || "saved event"}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
                           </div>
 
                           <button
